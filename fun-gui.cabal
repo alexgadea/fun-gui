@@ -24,7 +24,7 @@ Executable fun-gui
     GHC-options: -O3 -Odph -Wall
     Build-depends:       base, containers >= 0.4, mtl >= 2.0, reference >= 0.1, 
                          text >= 0.11.1.5, glade >= 0.12.1, gtk >= 0.12.1, 
-                         equ == 0.1, bytestring >= 0.9.1.10, cereal >= 0.3.3.0,
+                         equ >= 0.2, bytestring >= 0.9.1.10, cereal >= 0.3.3.0,
                          glib >= 0.12.1, filepath >= 1.2.0.0, strict >= 0.3.2,
                          pango >= 0.12.1, random >= 1.0.0.3,
                          transformers >= 0.2.2.0

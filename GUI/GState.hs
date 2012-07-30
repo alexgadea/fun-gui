@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, TypeSynonymInstances,MultiParamTypeClasses,NoMonomorphismRestriction #-}
+{-# LANGUAGE TemplateHaskell, TypeSynonymInstances,MultiParamTypeClasses #-}
+{-# LANGUAGE  NoMonomorphismRestriction#-}
 module GUI.GState where
 
 import Lens.Family
@@ -60,10 +61,6 @@ data GState = GState { _gFunEnv :: Environment
                      , _gFunEditBook  :: Maybe FunEditBook
                      }
 $(mkLenses ''GState)
-
-data Foo = Foo { _algo :: Int }
-    deriving Show
-$(mkLenses ''Foo)
 
 type GStateRef = IORef GState
 

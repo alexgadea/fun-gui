@@ -8,6 +8,7 @@ import Data.String.Utils
 import Data.Maybe (fromMaybe)
 
 import GUI.GState
+import GUI.DeclList
 import GUI.EditBook
 
 import Fun.Environment
@@ -55,7 +56,8 @@ checkSelectFile = getGState >>= \st ->
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
                         either (io . print) 
-                               (updateGState . (^=) gFunEnv) eRes
+                               (\env -> updateGState ((^=) gFunEnv env) >>
+                                updateInfoPaned env) eRes
     where
         check :: TextView -> GuiMonad (Either ModuleError Environment)
         check textV = io $ do

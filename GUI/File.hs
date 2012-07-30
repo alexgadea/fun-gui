@@ -4,7 +4,7 @@ import Graphics.UI.Gtk hiding (get)
 
 import Control.Monad.RWS
 import qualified Data.Foldable as F
-import Data.String.Utils
+import System.FilePath.Posix
 import Data.Maybe (fromMaybe)
 
 import GUI.GState
@@ -102,7 +102,7 @@ dialogLoad label fileFilter action = do
         _ -> widgetDestroy dialog >> return False
     where
         takeFileName :: FilePath -> IO String
-        takeFileName = return . head . split "." . last . split "/"
+        takeFileName = return . takeBaseName
     
 setFileFilter :: FileChooserClass f => f -> [String] -> String -> IO ()
 setFileFilter fChooser patterns title = do

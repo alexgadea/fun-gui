@@ -2,6 +2,7 @@ module GUI.EditBook where
 
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
+import Graphics.UI.Gtk.SourceView
 
 import Control.Monad.IO.Class
 import Control.Monad.RWS
@@ -13,15 +14,42 @@ import Data.Text (pack)
 import Data.Maybe (fromJust,fromMaybe)
 
 import GUI.GState
+import GUI.Config
 
 
-configTextView :: Label -> TextBuffer -> GuiMonad ()
+configTextView :: TextBufferClass buffer => Label -> buffer -> GuiMonad ()
 configTextView linesI buf = liftIO $ do
         onBufferChanged buf ( do
             countlLine <- textBufferGetLineCount buf
             let iplusone = unlines [show i | i <- [1..countlLine]]
             labelSetText linesI iplusone )
         return ()
+        
+configLanguage :: SourceBuffer -> GuiMonad ()
+configLanguage buf = liftIO $ do
+
+        -- Style Scheme
+        stm <- sourceStyleSchemeManagerNew
+        sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
+        styleSch <- sourceStyleSchemeManagerGetScheme stm "classic"        
+        
+        sourceBufferSetStyleScheme buf (Just styleSch)
+        
+        -- Language Spec
+        slm <- sourceLanguageManagerNew
+        sourceLanguageManagerSetSearchPath slm (Just [languageSpecFolder])
+        
+        mlang <- sourceLanguageManagerGuessLanguage 
+                    --slm (Just languageSpecFunFile) (Just funMimeType)
+                    slm (Just anotherLanguage) (Just "text/x-haskell")
+        case mlang of
+             Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
+             Just lang -> do
+                    langId <- sourceLanguageGetId lang
+                    putStrLn ("Lenguaje = "++show langId)
+                    sourceBufferSetLanguage buf (Just lang)
+        
+        
 
 configInfoLines :: Label -> GuiMonad ()
 configInfoLines l = io $
@@ -50,9 +78,10 @@ createTextEntry mcode = do
             l <- io $ labelNew $ Just "1"
             configInfoLines l
             
-            buf <- io $ textBufferNew Nothing
+            buf <- io $ sourceBufferNew Nothing
             
             configTextView l buf
+            configLanguage buf
             
             maybe (return ()) (io . loadCode buf) mcode
             
@@ -63,7 +92,7 @@ createTextEntry mcode = do
             
             return hbox
     where
-        loadCode :: TextBuffer -> String -> IO ()
+        loadCode :: TextBufferClass tbuffer => tbuffer -> String -> IO ()
         loadCode buf code = do
                 start <- textBufferGetStartIter buf
                 textBufferInsert buf start code

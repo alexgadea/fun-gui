@@ -5,6 +5,7 @@ import Graphics.UI.Gtk hiding (get)
 import Control.Monad.RWS
 import qualified Data.Foldable as F
 import Data.String.Utils
+import Data.Maybe (fromMaybe)
 
 import GUI.GState
 import GUI.EditBook
@@ -16,7 +17,6 @@ import Lens.Family
 
 createNewFileFromLoad :: Maybe String -> Maybe String -> GuiMonad ()
 createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
-        do
         case st ^. gFunEditBook of
             Nothing -> 
                 let mainPaned = content ^. (gFunMainPaned . mpaned) in
@@ -26,17 +26,17 @@ createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
                 updateGState ((^=) gFunEditBook (Just $ FunEditBook editBook))
             Just editBook -> let ebook = editBook ^. book in
                 createTextEdit mcode >>= \textEdit ->
-                return (maybe "blank" id mname) >>= \name -> 
+                (\name -> 
                 io (notebookAppendPage ebook textEdit name) >>
                 io (notebookGetNPages ebook) >>= \nPages ->
                 io (notebookSetCurrentPage ebook (nPages-1)) >>
-                return ()
+                return ()) (fromMaybe "blank" mname) 
 
 createNewFile :: GuiMonad ()
 createNewFile = createNewFileFromLoad Nothing Nothing
     
 closeCurrentFile :: GuiMonad ()
-closeCurrentFile = getGState >>= \st -> do
+closeCurrentFile = getGState >>= \st ->
         case st ^. gFunEditBook of
             Nothing -> return ()
             Just editBook -> do
@@ -54,8 +54,8 @@ checkSelectFile = getGState >>= \st ->
                     Just editBook -> do
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
-                        either (io . putStrLn . show) 
-                               (\env -> updateGState ((^=) gFunEnv env)) eRes
+                        either (io . print) 
+                               (updateGState . (^=) gFunEnv) eRes
     where
         check :: TextView -> GuiMonad (Either ModuleError Environment)
         check textV = io $ do
@@ -63,9 +63,7 @@ checkSelectFile = getGState >>= \st ->
             start <- textBufferGetStartIter buf
             end   <- textBufferGetEndIter buf
             code  <- textBufferGetText buf start end False
-            eRes  <- loadMainModuleFromString code
-            return eRes
-
+            loadMainModuleFromString code
 
 openFile :: GuiMonad ()
 openFile = ask >>= \ct -> get >>= \st ->
@@ -93,11 +91,11 @@ dialogLoad label fileFilter action = do
     case response of
         ResponseAccept -> do
             selected <- fileChooserGetFilename dialog
-            flip F.mapM_ selected (\filepath -> 
-                                    readFile filepath >>= \code ->
-                                    takeFileName filepath >>= \fileName ->
-                                    action (Just fileName) (Just code) >>
-                                    widgetDestroy dialog)
+            F.mapM_ (\filepath -> 
+                    readFile filepath >>= \code ->
+                    takeFileName filepath >>= \fileName ->
+                    action (Just fileName) (Just code) >>
+                    widgetDestroy dialog) selected 
             return True
         _ -> widgetDestroy dialog >> return False
     where

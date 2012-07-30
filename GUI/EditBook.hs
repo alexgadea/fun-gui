@@ -10,7 +10,7 @@ import Control.Arrow
 import Lens.Family
 
 import Data.Text (pack)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust,fromMaybe)
 
 import GUI.GState
 
@@ -24,20 +24,20 @@ configTextView linesI buf = liftIO $ do
         return ()
 
 configInfoLines :: Label -> GuiMonad ()
-configInfoLines l = io $ do 
+configInfoLines l = io $
             set l [ miscXalign := 0
                   , miscYalign := 0
                   , miscXpad   := 2
                   ]
     
 configScrolledWindow :: ScrolledWindow -> GuiMonad ()
-configScrolledWindow sw = io $ do
+configScrolledWindow sw = io $
             set sw [ scrolledWindowHscrollbarPolicy := PolicyAutomatic 
                    , scrolledWindowVscrollbarPolicy := PolicyAutomatic 
                    ]
                    
 configNotebook :: Notebook -> GuiMonad ()
-configNotebook nb = io $ do
+configNotebook nb = io $
             set nb [ notebookTabBorder  := 0
                    , notebookTabHborder := 0
                    , notebookTabVborder := 0
@@ -100,13 +100,13 @@ getTextEditFromFunEditBook feditBook = do
             [cpPV]    <- io $  containerGetChildren (castToContainer cpSW)
             [cpBox]   <- io $ containerGetChildren (castToContainer cpPV)
             [_,tv]    <- io $ containerGetChildren (castToContainer cpBox)
-            return $ (textViewN,castToTextView tv)
+            return (textViewN,castToTextView tv)
 
 createEditBook :: Maybe String -> Maybe String -> GuiMonad Notebook
 createEditBook mname mcode = do
-            let name = maybe "blank" id mname
+            let name = fromMaybe "blank" mname
             
-            newnt <- io (notebookNew)
+            newnt <- io notebookNew
             configNotebook newnt
             
             texte <- createTextEdit mcode

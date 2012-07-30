@@ -91,7 +91,7 @@ configToolBarButtons = ask >>= \content ->
         liftIO $ do
         let (quitB,window) = flip (^.) (gFunMenuBar . quitButton) 
                              &&& 
-                             flip (^.) (gFunWindow) $ content
+                             flip (^.) gFunWindow $ content
         onActivateLeaf quitB $ widgetDestroy window
         return ()
 

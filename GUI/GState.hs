@@ -1,5 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeSynonymInstances,MultiParamTypeClasses #-}
-{-# LANGUAGE  NoMonomorphismRestriction#-}
+{-# LANGUAGE TemplateHaskell,FlexibleInstances, TypeSynonymInstances,MultiParamTypeClasses,NoMonomorphismRestriction #-}
 module GUI.GState where
 
 import Lens.Family

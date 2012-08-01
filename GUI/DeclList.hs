@@ -25,23 +25,23 @@ import Fun.Module
 import Fun.Declarations
 
 -- | Nombre a mostrar y acción al hace click.
-type DeclItem = (String, GuiMonad ())
+type DeclItem = (String, DeclPos)
 
 -- | Crea un treeStore para los DeclItem.
-listDecls :: (Decl d, Show d) => [(DeclPos,d)] -> IO (TreeStore DeclItem)
-listDecls decls = treeStoreNew $ toForest decls
+listDecls :: (Decl d, Show d) => [(DeclPos,d)] -> GuiMonad (TreeStore DeclItem)
+listDecls decls = io $ treeStoreNew $ toForest decls
 
 -- | Crea un forest de DeclItem.
 toForest :: (Decl d, Show d) => [(DeclPos,d)] -> Forest DeclItem
-toForest = map (\(pos,d) -> Node (unpack $ getNameDecl d, io $ print 1) [])
+toForest = map (\(pos,d) -> Node (unpack $ getNameDecl d, pos) [])
 
 -- | Configura una lista de posición y declaracion.
 setupDeclList :: (Decl d, Show d) => [(DeclPos,d)] -> TreeView -> Window -> 
-                                     IO (TreeStore DeclItem)
+                                     GuiMonad (TreeStore DeclItem)
 setupDeclList decls tv pwin  = listDecls decls >>= setupDList
     where
-        setupDList :: TreeStore DeclItem -> IO (TreeStore DeclItem)
-        setupDList list = 
+        setupDList :: TreeStore DeclItem -> GuiMonad (TreeStore DeclItem)
+        setupDList list = io $
             treeViewGetColumn tv 0 >>=
             F.mapM_ (treeViewRemoveColumn tv) >>
             treeViewColumnNew >>= \col ->
@@ -52,7 +52,19 @@ setupDeclList decls tv pwin  = listDecls decls >>= setupDList
             cellLayoutSetAttributes col renderer list 
                                 (\ind -> [ cellText := fst ind ]) >>
             treeViewAppendColumn tv col >>
+            treeViewGetSelection tv >>= \tree ->
+            onSelectionChanged tree (onSelection list tree) >>
             return list
+        onSelection :: TreeStore DeclItem -> TreeSelection -> IO ()
+        onSelection list tree = do
+                sel <- treeSelectionGetSelectedRows tree
+                if null sel then return ()
+                else do
+                    let h = head sel
+                    (_,pos) <- treeStoreGetValue list h
+                    putStrLn (show pos)
+                    treeSelectionUnselectAll tree
+                    return ()
 
 -- | Configura las acciones de los DeclItem del panel izquierdo.
 updateInfoPaned :: Environment -> GuiMonad ()
@@ -76,10 +88,7 @@ updateInfoPaned env = do
         updateInfo decls getExpndr w content = do
                     let expander = content ^. (gFunInfoPaned . getExpndr)
                     tv <- io treeViewNew
-                    tree <- io $ treeViewGetSelection tv
-                    io $ treeSelectionSetMode tree  SelectionSingle
-                    io $ onSelectionChanged tree (print 1)
-                    io $ setupDeclList decls tv w
+                    setupDeclList decls tv w
                     io $ cleanExpander expander
                     io $ set expander [ containerChild := tv 
                                       , expanderExpanded := True

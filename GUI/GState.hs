@@ -33,7 +33,15 @@ $(mkLenses ''FunToolbar)
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
 
--- | Información sobre el panel izquiero de la interfaz.
+data FunCommConsole = FunCommConsole {
+                            _commEntry :: Entry
+                          , _commTBuffer :: TextBuffer
+                      }
+$(mkLenses ''FunCommConsole)
+
+data FunEditorPaned = FunEditorPaned { _epaned :: VPaned }
+$(mkLenses ''FunEditorPaned)
+
 data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  , _iFuncs    :: Expander
                                  , _iThms     :: Expander
@@ -46,6 +54,14 @@ $(mkLenses ''FunInfoPaned)
 data FunEditBook = FunEditBook { _book :: Notebook }
 $(mkLenses ''FunEditBook)
 
+-- | Información sobre la lista de símbolos.
+data FunSymList = FunSymList { _gGoLeftBox   :: HBox
+                             , _gScrollW     :: ScrolledWindow
+                             , _gSymIconView :: IconView
+                             , _gGoRightBox  :: HBox
+                             }
+$(mkLenses ''FunSymList)
+
 -- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
 -- del archivo glade.
 data GReader = GReader { _gFunWindow    :: Window
@@ -53,6 +69,9 @@ data GReader = GReader { _gFunWindow    :: Window
                        , _gFunToolbar   :: FunToolbar
                        , _gFunMainPaned :: FunMainPaned
                        , _gFunInfoPaned :: FunInfoPaned
+                       , _gFunSymbolList :: FunSymList
+                       , _gFunEditorPaned :: FunEditorPaned
+                       , _gFunCommConsole :: FunCommConsole
                        }
 $(mkLenses ''GReader)
 

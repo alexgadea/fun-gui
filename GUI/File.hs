@@ -16,6 +16,10 @@ import Fun.Module.Error
 
 import Lens.Family
 
+-- | En general, salvo aclaración, un archivo en este contexto es directamente
+-- un campo de texto con su respectivo nombre en la interfaz.
+
+-- | Crea un campo de texto al realizar una carga por archivo.
 createNewFileFromLoad :: Maybe String -> Maybe String -> GuiMonad ()
 createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
         case st ^. gFunEditBook of
@@ -33,9 +37,11 @@ createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
                 io (notebookSetCurrentPage ebook (nPages-1)) >>
                 return ()) (fromMaybe "blank" mname) 
 
+-- | Crea un nuevo archivo en blanco.
 createNewFile :: GuiMonad ()
 createNewFile = createNewFileFromLoad Nothing Nothing
-    
+
+-- | Cierra el archivo presente.
 closeCurrentFile :: GuiMonad ()
 closeCurrentFile = getGState >>= \st ->
         case st ^. gFunEditBook of
@@ -48,6 +54,8 @@ closeCurrentFile = getGState >>= \st ->
                              when (quantPages == 0) 
                                   (updateGState ((^=) gFunEditBook Nothing))
 
+-- | Chequea un archivo cargando, esto implica parsearlo, typechequearlo y
+-- validarlo.
 checkSelectFile :: GuiMonad ()
 checkSelectFile = getGState >>= \st ->
                 case st ^. gFunEditBook of
@@ -67,6 +75,7 @@ checkSelectFile = getGState >>= \st ->
             code  <- textBufferGetText buf start end False
             loadMainModuleFromString code
 
+-- | Función para cargar un archivo.
 openFile :: GuiMonad ()
 openFile = ask >>= \ct -> get >>= \st ->
            io $ dialogLoad "Cargar programa" funFileFilter (openFile' ct st) >>
@@ -78,6 +87,7 @@ openFile = ask >>= \ct -> get >>= \st ->
                     evalRWST (createNewFileFromLoad mname mcode) content st >> 
                     return ()
 
+-- | Dialogo general para la carga de archivos.
 dialogLoad :: String -> (FileChooserDialog -> IO ()) -> 
              (Maybe String -> Maybe String -> IO ()) -> IO Bool
 dialogLoad label fileFilter action = do
@@ -103,17 +113,20 @@ dialogLoad label fileFilter action = do
     where
         takeFileName :: FilePath -> IO String
         takeFileName = return . takeBaseName
-    
+
+-- | Generador de filtros para la carga y guardado de archivos.
 setFileFilter :: FileChooserClass f => f -> [String] -> String -> IO ()
 setFileFilter fChooser patterns title = do
                                 hsfilt <- fileFilterNew
                                 mapM_ (fileFilterAddPattern hsfilt) patterns
                                 fileFilterSetName hsfilt title
                                 fileChooserAddFilter fChooser hsfilt    
-    
+
+-- | Guardado directo de un archivo.
 saveFile :: GuiMonad ()
 saveFile = return ()
-            
+
+-- | Guardado en, de un archivo.
 saveAtFile :: GuiMonad ()
 saveAtFile = getGState >>= \st ->
         case st ^. gFunEditBook of
@@ -132,6 +145,7 @@ saveAtFile = getGState >>= \st ->
             end   <- textBufferGetEndIter buf
             textBufferGetText buf start end False
 
+-- | Dialogo general para guardar un archivo.
 saveDialog :: String -> String -> (FileChooserDialog -> IO ()) -> 
               String -> GuiMonad Bool
 saveDialog label filename fileFilter serialItem = do
@@ -155,5 +169,6 @@ saveDialog label filename fileFilter serialItem = do
         save:: FilePath -> GuiMonad ()
         save filepath = io $ writeFile filepath serialItem
 
+-- | Filtro de programas de fun.
 funFileFilter :: (FileChooserClass f, MonadIO m) => f -> m ()
 funFileFilter dialog = io $ setFileFilter dialog ["*.fun"] "Programa de fun"

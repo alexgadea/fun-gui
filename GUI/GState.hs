@@ -14,12 +14,13 @@ import Control.Monad.RWS
 import Data.IORef
 import Data.Reference
 
-
 io = liftIO
 
+-- | Información sobre los items del menuBar.
 data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(mkLenses ''FunMenuBar)
 
+-- | Información sobre los items del toolBar.
 data FunToolbar = FunToolbar { _newFB     :: ToolButton
                              , _openFB    :: ToolButton
                              , _saveFB    :: ToolButton
@@ -29,14 +30,10 @@ data FunToolbar = FunToolbar { _newFB     :: ToolButton
                              }
 $(mkLenses ''FunToolbar)
 
-data FunPaned = FunPaned { _linesInfo :: Label
-                         , _textLines :: TextView
-                         }
-$(mkLenses ''FunPaned)
-
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
 
+-- | Información sobre el panel izquiero de la interfaz.
 data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  , _iFuncs    :: Expander
                                  , _iThms     :: Expander
@@ -45,9 +42,12 @@ data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  }
 $(mkLenses ''FunInfoPaned)
 
+-- | Información sobre el panel derecho de la interfaz.
 data FunEditBook = FunEditBook { _book :: Notebook }
 $(mkLenses ''FunEditBook)
 
+-- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
+-- del archivo glade.
 data GReader = GReader { _gFunWindow    :: Window
                        , _gFunMenuBar   :: FunMenuBar
                        , _gFunToolbar   :: FunToolbar
@@ -56,13 +56,18 @@ data GReader = GReader { _gFunWindow    :: Window
                        }
 $(mkLenses ''GReader)
 
+-- | Tipo de mónada de estado, llevamos el environment de un modulo bien 
+-- chequeado y la info sobre la parte derecha de la interfaz, es decir, 
+-- la que contiene los campos de texto para escribir programas.
 data GState = GState { _gFunEnv :: Environment 
                      , _gFunEditBook  :: Maybe FunEditBook
                      }
 $(mkLenses ''GState)
 
+-- | Referencia del estado.
 type GStateRef = IORef GState
 
+-- | Mónada de la interfaz.
 type GuiMonad = RWST GReader () GStateRef IO
 
 instance Reference IORef GuiMonad where
@@ -70,16 +75,14 @@ instance Reference IORef GuiMonad where
     readRef = liftIO . readRef
     writeRef r = liftIO . writeRef r
 
+-- | Retorna el estado de la mónada de la interfaz.
 getGState :: GuiMonad GState
 getGState = get >>= readRef
 
+-- | Actualiza el estado de la mónada de la interfaz.
 updateGState :: (GState -> GState) -> GuiMonad ()
 updateGState f = do
                 r <- get
                 gst <- readRef r
                 writeRef r $ f gst
                 put r
-
--- Estaria genial tener una función así, pero no andan los tipos :(
--- manyGet :: a1 -> [GetterFamily a1 a' a b'] -> [a]
--- manyGet content actions = foldr (\l r -> (content ^. l) : r) [] actions

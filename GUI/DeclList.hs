@@ -1,13 +1,9 @@
 {-# Language TypeOperators, RankNTypes#-}
--- | Configuración de la lista de símbolos.
+-- | Configuración de la lista de declaraciones del panel izquierdo.
 module GUI.DeclList where
 
-import Fun.Decl
-import Fun.Environment
-import Fun.Module
-import Fun.Declarations
-
 import GUI.GState
+import GUI.EditBook
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 import Graphics.UI.Gtk.Gdk.Events 
@@ -23,34 +19,42 @@ import Control.Monad.RWS
 
 import Lens.Family
 
-type DeclItem = (String, GuiMonad Int)
+import Fun.Decl
+import Fun.Environment
+import Fun.Module
+import Fun.Declarations
 
-listDecls :: (Decl d, Show d) => [d] -> IO (TreeStore DeclItem)
+-- | Nombre a mostrar y acción al hace click.
+type DeclItem = (String, GuiMonad ())
+
+-- | Crea un treeStore para los DeclItem.
+listDecls :: (Decl d, Show d) => [(DeclPos,d)] -> IO (TreeStore DeclItem)
 listDecls decls = treeStoreNew $ toForest decls
 
-toForest :: (Decl d, Show d) => [d] -> Forest DeclItem
-toForest = map (\d -> Node (unpack $ getNameDecl d, return 0) [])
+-- | Crea un forest de DeclItem.
+toForest :: (Decl d, Show d) => [(DeclPos,d)] -> Forest DeclItem
+toForest = map (\(pos,d) -> Node (unpack $ getNameDecl d, io $ print 1) [])
 
-addItem :: (Decl d, Show d) => d -> DeclItem
-addItem d = (show d, return 0)
+-- | Configura una lista de posición y declaracion.
+setupDeclList :: (Decl d, Show d) => [(DeclPos,d)] -> TreeView -> Window -> 
+                                     IO (TreeStore DeclItem)
+setupDeclList decls tv pwin  = listDecls decls >>= setupDList
+    where
+        setupDList :: TreeStore DeclItem -> IO (TreeStore DeclItem)
+        setupDList list = 
+            treeViewGetColumn tv 0 >>=
+            F.mapM_ (treeViewRemoveColumn tv) >>
+            treeViewColumnNew >>= \col ->
+            treeViewSetHeadersVisible tv False >>
+            treeViewSetModel tv list >>
+            cellRendererTextNew >>= \renderer ->
+            cellLayoutPackStart col renderer False >>
+            cellLayoutSetAttributes col renderer list 
+                                (\ind -> [ cellText := fst ind ]) >>
+            treeViewAppendColumn tv col >>
+            return list
 
-setupDeclList :: (Decl d, Show d) => [d] -> TreeView -> Window -> IO (TreeStore DeclItem)
-setupDeclList decls tv pwin  = 
-    listDecls decls >>= setupDList tv 
-
-setupDList :: TreeView  -> TreeStore DeclItem -> IO (TreeStore DeclItem)
-setupDList tv list = 
-    treeViewGetColumn tv 0 >>=
-    F.mapM_ (treeViewRemoveColumn tv) >>
-    treeViewColumnNew >>= \col ->
-    treeViewSetHeadersVisible tv False >>
-    treeViewSetModel tv list >>
-    cellRendererTextNew >>= \renderer ->
-    cellLayoutPackStart col renderer False >>
-    cellLayoutSetAttributes col renderer list (\ind -> [ cellText := fst ind ]) >>
-    treeViewAppendColumn tv col >>
-    return list
-    
+-- | Configura las acciones de los DeclItem del panel izquierdo.
 updateInfoPaned :: Environment -> GuiMonad ()
 updateInfoPaned env = do
             content <- ask 
@@ -69,17 +73,17 @@ updateInfoPaned env = do
             
             return ()
     where
---         updateInfo :: (Decl d, Show d) => 
---                       [d] -> (FunInfoPaned :->: Expander) ->
---                       Window -> GReader -> GuiMonad ()
         updateInfo decls getExpndr w content = do
                     let expander = content ^. (gFunInfoPaned . getExpndr)
                     tv <- io treeViewNew
+                    tree <- io $ treeViewGetSelection tv
+                    io $ treeSelectionSetMode tree  SelectionSingle
+                    io $ onSelectionChanged tree (print 1)
                     io $ setupDeclList decls tv w
                     io $ cleanExpander expander
                     io $ set expander [ containerChild := tv 
-                                        , expanderExpanded := True
-                                        ]
+                                      , expanderExpanded := True
+                                      ]
                     io $ widgetShowAll expander
                     return ()
         cleanExpander :: Expander -> IO ()

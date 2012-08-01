@@ -1,3 +1,5 @@
+-- | Modulo respectivo a la parte derecha de la interfaz, es decir, el 
+-- campo de texto.
 module GUI.EditBook where
 
 import Graphics.UI.Gtk hiding (get)
@@ -16,41 +18,42 @@ import Data.Maybe (fromJust,fromMaybe)
 import GUI.GState
 import GUI.Config
 
-
+-- | Configura el label respectivo a al informe de las lineas del campo de texto.
 configTextView :: TextBufferClass buffer => Label -> buffer -> GuiMonad ()
-configTextView linesI buf = liftIO $ do
+configTextView linesI buf = io $ do
         onBufferChanged buf ( do
             countlLine <- textBufferGetLineCount buf
             let iplusone = unlines [show i | i <- [1..countlLine]]
             labelSetText linesI iplusone )
         return ()
-        
+
+-- Configura el lenguaje para el sourceView.
 configLanguage :: SourceBuffer -> GuiMonad ()
 configLanguage buf = liftIO $ do
-        
-        -- Language Spec
-        slm <- sourceLanguageManagerNew
-        path <- sourceLanguageManagerGetSearchPath slm
-        sourceLanguageManagerSetSearchPath slm (Just $ languageSpecFolder:path)
-        
-        mlang <- sourceLanguageManagerGuessLanguage 
-                    --slm (Just languageSpecFunFile) (Just funMimeType)
-                    slm (Just languageSpecFunFile) (Just funMimeType)
-        case mlang of
-             Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
-             Just lang -> do
-                    langId <- sourceLanguageGetId lang
-                    putStrLn ("Lenguaje = "++show langId)
-                    sourceBufferSetLanguage buf (Just lang)
+    -- Language Spec
+    slm <- sourceLanguageManagerNew
+    path <- sourceLanguageManagerGetSearchPath slm
+    sourceLanguageManagerSetSearchPath slm (Just $ languageSpecFolder:path)
+    
+    mlang <- sourceLanguageManagerGuessLanguage 
+                --slm (Just languageSpecFunFile) (Just funMimeType)
+                slm (Just languageSpecFunFile) (Just funMimeType)
+    case mlang of
+        Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
+        Just lang -> do
+            langId <- sourceLanguageGetId lang
+            putStrLn ("Lenguaje = "++show langId)
+            sourceBufferSetLanguage buf (Just lang)
 
-                    sourceBufferSetHighlightSyntax buf True
-                    sourceBufferSetHighlightMatchingBrackets buf True        
-                    -- Style Scheme
-                    stm <- sourceStyleSchemeManagerNew
-                    sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
-                    styleSch <- sourceStyleSchemeManagerGetScheme stm "fun"        
-                    sourceBufferSetStyleScheme buf (Just styleSch)
+            sourceBufferSetHighlightSyntax buf True
+            sourceBufferSetHighlightMatchingBrackets buf True        
+            -- Style Scheme
+            stm <- sourceStyleSchemeManagerNew
+            sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
+            styleSch <- sourceStyleSchemeManagerGetScheme stm "fun"        
+            sourceBufferSetStyleScheme buf (Just styleSch)
 
+-- | Configuración del sourceView.
 configSourceView :: SourceView -> GuiMonad ()
 configSourceView sv = io $ do
         sourceViewSetIndentWidth sv funIdentWidth
@@ -58,20 +61,22 @@ configSourceView sv = io $ do
         sourceViewSetIndentOnTab sv setIndentOnTab
         sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
         
-
+-- | Configuración del aspecto y caracteristicas del label de lineas.
 configInfoLines :: Label -> GuiMonad ()
 configInfoLines l = io $
             set l [ miscXalign := 0
                   , miscYalign := 0
                   , miscXpad   := 2
                   ]
-    
+
+-- | Configuración de la ventana de scroll, que contiene el campo de texto.
 configScrolledWindow :: ScrolledWindow -> GuiMonad ()
 configScrolledWindow sw = io $
             set sw [ scrolledWindowHscrollbarPolicy := PolicyAutomatic 
                    , scrolledWindowVscrollbarPolicy := PolicyAutomatic 
                    ]
-                   
+
+-- | Configuración del aspecto del notebook que contiene los archivos abiertos.
 configNotebook :: Notebook -> GuiMonad ()
 configNotebook nb = io $
             set nb [ notebookTabBorder  := 0
@@ -79,6 +84,7 @@ configNotebook nb = io $
                    , notebookTabVborder := 0
                    ]
 
+-- | Crea un campo de texto y lo llena, de ser posible, con el string.
 createTextEntry :: Maybe String -> GuiMonad HBox
 createTextEntry mcode = do
             hbox <- io $ hBoxNew False 0
@@ -107,6 +113,7 @@ createTextEntry mcode = do
                 start <- textBufferGetStartIter buf
                 textBufferInsert buf start code
 
+-- | Crea un campo de texto con su respectivo scrollWindow.
 createTextEdit :: Maybe String -> GuiMonad ScrolledWindow
 createTextEdit mcode = do
             swindow <- io $ scrolledWindowNew Nothing Nothing
@@ -130,6 +137,8 @@ createTextEdit mcode = do
             
             return swindow
 
+-- | Dado un EditBook, obtiene el campo de texto que esta seleccionado en
+-- ese momento y su nombre.
 getTextEditFromFunEditBook :: FunEditBook -> GuiMonad (String,TextView)
 getTextEditFromFunEditBook feditBook = do
             let notebook = feditBook ^. book
@@ -141,6 +150,8 @@ getTextEditFromFunEditBook feditBook = do
             [_,tv]    <- io $ containerGetChildren (castToContainer cpBox)
             return (textViewN,castToTextView tv)
 
+-- | Crea un editBook, el cual tiene un primer campo de texto con nombre 
+-- y contenido de ser posible.
 createEditBook :: Maybe String -> Maybe String -> GuiMonad Notebook
 createEditBook mname mcode = do
             let name = fromMaybe "blank" mname

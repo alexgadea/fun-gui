@@ -27,28 +27,36 @@ configTextView linesI buf = liftIO $ do
         
 configLanguage :: SourceBuffer -> GuiMonad ()
 configLanguage buf = liftIO $ do
-
-        -- Style Scheme
-        stm <- sourceStyleSchemeManagerNew
-        sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
-        styleSch <- sourceStyleSchemeManagerGetScheme stm "classic"        
-        
-        sourceBufferSetStyleScheme buf (Just styleSch)
         
         -- Language Spec
         slm <- sourceLanguageManagerNew
-        sourceLanguageManagerSetSearchPath slm (Just [languageSpecFolder])
+        path <- sourceLanguageManagerGetSearchPath slm
+        sourceLanguageManagerSetSearchPath slm (Just $ languageSpecFolder:path)
         
         mlang <- sourceLanguageManagerGuessLanguage 
                     --slm (Just languageSpecFunFile) (Just funMimeType)
-                    slm (Just anotherLanguage) (Just "text/x-haskell")
+                    slm (Just languageSpecFunFile) (Just funMimeType)
         case mlang of
              Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
              Just lang -> do
                     langId <- sourceLanguageGetId lang
                     putStrLn ("Lenguaje = "++show langId)
                     sourceBufferSetLanguage buf (Just lang)
-        
+
+                    sourceBufferSetHighlightSyntax buf True
+                    sourceBufferSetHighlightMatchingBrackets buf True        
+                    -- Style Scheme
+                    stm <- sourceStyleSchemeManagerNew
+                    sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
+                    styleSch <- sourceStyleSchemeManagerGetScheme stm "fun"        
+                    sourceBufferSetStyleScheme buf (Just styleSch)
+
+configSourceView :: SourceView -> GuiMonad ()
+configSourceView sv = io $ do
+        sourceViewSetIndentWidth sv funIdentWidth
+        sourceViewSetAutoIndent sv autoIdent
+        sourceViewSetIndentOnTab sv setIndentOnTab
+        sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
         
 
 configInfoLines :: Label -> GuiMonad ()
@@ -85,10 +93,12 @@ createTextEntry mcode = do
             
             maybe (return ()) (io . loadCode buf) mcode
             
-            textv <- io $ textViewNewWithBuffer buf
+            sourceview <- io $ sourceViewNewWithBuffer buf
+            
+            configSourceView sourceview
             
             io $ boxPackStart hbox l PackNatural 0
-            io $ boxPackStart hbox textv PackGrow 0
+            io $ boxPackStart hbox sourceview PackGrow 0
             
             return hbox
     where

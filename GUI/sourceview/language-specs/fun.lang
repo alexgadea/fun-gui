@@ -27,7 +27,7 @@
     <property name="mimetypes">text/fun</property>
     <property name="globs">*.fun</property>
   </metadata>
-
+  
   <styles>
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
     <style id="declaration" _name="Declaration Type" map-to="def:declaration"/>

@@ -21,9 +21,9 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 -->
-<style-scheme id="classic" _name="Classic" version="1.0">
-  <author>GtkSourceView team</author>
-  <_description>Classic color scheme</_description>
+<style-scheme id="fun" _name="Fun" version="1.0">
+  <author>Theona</author>
+  <_description>Esquema para Fun, basado en classic.</_description>
 
   <!-- The scheme tries to look like the default GVim scheme,
        since it is also what the hardwired GtkSourceView 1 color
@@ -70,14 +70,14 @@
   <style name="def:type"                    foreground="green" bold="true"/>
 
   <!-- Others -->
-  <style name="def:preprocessor"            foreground="purple"/>
-  <style name="def:error"                   background="red" bold="true"/>
-  <style name="def:note"                    foreground="blue" background="yellow" bold="true"/>
+  <style name="def:preprocessor"            foreground="purple" />
+  <style name="def:error"                   line-background="red" bold="true"/>
+  <style name="def:note"                    foreground="blue" line-background="yellow" bold="true"/>
   <style name="def:underlined"              italic="true" underline="true"/>
   <style name="def:declaration"             foreground="purple"/>
-  <style name="def:specblock"               background="yellowBack"/>
-  <style name="def:funblock"                background="blueBack"/>
-  <style name="def:proofblock"              background="pinkBack"/>
+  <style name="def:specblock"               line-background="yellowBack"/>
+  <style name="def:funblock"                line-background="blueBack" />
+  <style name="def:proofblock"              line-background="pinkBack"/>
   <style name="def:justificationProof"      foreground="darkgray" italic="true"/>
   <style name="def:relationProof"           bold="true"/>
 

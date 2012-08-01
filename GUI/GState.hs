@@ -34,8 +34,17 @@ data FunPaned = FunPaned { _linesInfo :: Label
                          }
 $(mkLenses ''FunPaned)
 
+data FunCommConsole = FunCommConsole {
+                            _commEntry :: Entry
+                          , _commTBuffer :: TextBuffer
+                      }
+$(mkLenses ''FunCommConsole)
+
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
+
+data FunEditorPaned = FunEditorPaned { _epaned :: VPaned }
+$(mkLenses ''FunEditorPaned)
 
 data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  , _iFuncs    :: Expander
@@ -53,6 +62,8 @@ data GReader = GReader { _gFunWindow    :: Window
                        , _gFunToolbar   :: FunToolbar
                        , _gFunMainPaned :: FunMainPaned
                        , _gFunInfoPaned :: FunInfoPaned
+                       , _gFunEditorPaned :: FunEditorPaned
+                       , _gFunCommConsole :: FunCommConsole
                        }
 $(mkLenses ''GReader)
 

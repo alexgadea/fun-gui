@@ -20,9 +20,9 @@ createNewFileFromLoad :: Maybe String -> Maybe String -> GuiMonad ()
 createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
         case st ^. gFunEditBook of
             Nothing -> 
-                let mainPaned = content ^. (gFunMainPaned . mpaned) in
-                io (panedGetChild2 mainPaned) >>= \(Just drawArea) ->
-                io (containerRemove (castToContainer mainPaned) drawArea) >>
+                let editorPaned = content ^. (gFunEditorPaned . epaned) in
+                io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
+                io (containerRemove (castToContainer editorPaned) drawArea) >>
                 createEditBook mname mcode >>= \editBook -> 
                 updateGState ((^=) gFunEditBook (Just $ FunEditBook editBook))
             Just editBook -> let ebook = editBook ^. book in

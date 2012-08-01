@@ -18,6 +18,7 @@ import Data.Reference
 import GUI.GState
 import GUI.EditBook
 import GUI.File
+import GUI.Config
 
 main :: IO ()
 main = do 
@@ -28,6 +29,7 @@ main = do
     runRWST (do configWindow
                 configToolBarButtons
                 configMenuBarButtons
+                configCommandConsole
             ) greader gstate
 
     mainGUI
@@ -54,17 +56,30 @@ makeGState sXml = do
         window <- xmlGetWidget xml castToWindow "mainWindow"
         quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
         
+        edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
+        commTV <- xmlGetWidget xml castToTextView "commandTView"
+        commEntry <- xmlGetWidget xml castToEntry "commandEntry"
+        
+        panedSetPosition edPaned 400
+        configCommTV commTV
+        
+        commTBuf <- textViewGetBuffer commTV
+        
         let funFunMenuBarST = FunMenuBar quitButton
         let funToolbarST = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB
         let funMainPanedST = FunMainPaned mainPaned
         let funInfoPanedST = FunInfoPaned iSpecs iFuncs iThms iVals iProps
+        let funCommConsole = FunCommConsole commEntry commTBuf
+        let funEditorPaned = FunEditorPaned edPaned
         
         gState <- newRef $ GState [] Nothing
         let gReader = GReader window 
                               funFunMenuBarST 
                               funToolbarST 
                               funMainPanedST
-                              funInfoPanedST 
+                              funInfoPanedST
+                              funEditorPaned
+                              funCommConsole
         return (gReader,gState)
 
 configMenuBarButtons :: GuiMonad ()
@@ -86,6 +101,24 @@ configMenuBarButtons = ask >>= \content -> get >>= \st ->
             
         return ()
 
+configCommTV :: TextView -> IO ()
+configCommTV commTV = do
+        widgetModifyBase commTV StateNormal backColorCommTV
+        widgetModifyText commTV StateNormal textColorCommTV
+        widgetShowAll commTV
+        
+configCommandConsole :: GuiMonad ()
+configCommandConsole= ask >>= \content ->
+        io $ do
+        let entry = content ^. (gFunCommConsole . commEntry)
+        let buf = content ^. (gFunCommConsole . commTBuffer)
+        entry `on` entryActivate $ io $ do
+                        text <- entryGetText entry
+                        entrySetText entry ""
+                        textBufferSetText buf text
+        return ()
+                    
+        
 configToolBarButtons :: GuiMonad ()
 configToolBarButtons = ask >>= \content ->
         liftIO $ do

@@ -154,9 +154,9 @@ createEditBook mname mcode = do
             
             content <- ask 
             
-            let mainPaned = content ^. (gFunMainPaned . mpaned)
+            let editorPaned = content ^. (gFunEditorPaned . epaned)
             
-            io $ panedAdd2 mainPaned newnt
-            io $ widgetShowAll mainPaned
+            io $ panedAdd1 editorPaned newnt
+            io $ widgetShowAll editorPaned
             
             return newnt

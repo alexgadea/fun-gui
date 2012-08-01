@@ -1,6 +1,6 @@
 module GUI.Config where
 
-
+import Graphics.UI.Gtk
 
 
 -- Para definir el lenguaje del resaltado
@@ -25,3 +25,12 @@ funIdentWidth = 4
 spacesInsteadTab = True
 setIndentOnTab = True
 autoIdent = True
+
+
+-- Colores
+
+backColorCommTV :: Color
+backColorCommTV = Color 8000 8000 8000
+
+textColorCommTV :: Color
+textColorCommTV = Color 60000 60000 60000

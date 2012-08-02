@@ -78,7 +78,7 @@ makeGState sXml = do
         let funMainPanedST = FunMainPaned mainPaned
         let funInfoPanedST = FunInfoPaned iSpecs iFuncs iThms iVals iProps
         let funSymListST    = FunSymList goLeftBox scrollW symIV goRightBox
-        let funCommConsole = FunCommConsole commEntry commTBuf
+        let funCommConsole = FunCommConsole commEntry commTBuf commTV
         let funEditorPaned = FunEditorPaned edPaned
         
         gState <- newRef $ GState [] Nothing
@@ -122,6 +122,7 @@ configCommandConsole= ask >>= \content ->
         io $ do
         let entry = content ^. (gFunCommConsole . commEntry)
         let buf = content ^. (gFunCommConsole . commTBuffer)
+        let tv = content ^. (gFunCommConsole . commTView)
         entry `on` entryActivate $ io $ do
                         text <- entryGetText entry
                         entrySetText entry ""
@@ -131,6 +132,11 @@ configCommandConsole= ask >>= \content ->
                         res <- processCommand text
                         titer <- textBufferGetEndIter buf
                         textBufferInsert buf titer ("\n\t"++res)
+                        titer2 <- textBufferGetEndIter buf
+                        mark <- textBufferCreateMark buf Nothing titer2 False
+                        textViewScrollToMark tv mark 0 Nothing
+                        widgetShowAll tv
+                        return ()
         return ()
 
 processCommand :: String -> IO String

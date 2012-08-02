@@ -36,6 +36,7 @@ $(mkLenses ''FunMainPaned)
 data FunCommConsole = FunCommConsole {
                             _commEntry :: Entry
                           , _commTBuffer :: TextBuffer
+                          , _commTView :: TextView
                       }
 $(mkLenses ''FunCommConsole)
 

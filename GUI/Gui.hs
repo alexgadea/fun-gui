@@ -15,6 +15,8 @@ import Data.Text (pack)
 import Data.Maybe (fromJust,isJust)
 import Data.Reference
 
+import qualified Equ.Parser as EquParser
+
 import GUI.File
 import GUI.GState
 import GUI.EditBook
@@ -133,6 +135,7 @@ configCommandConsole= ask >>= \content ->
                         titer <- textBufferGetEndIter buf
                         textBufferInsert buf titer ("\n\t"++res)
                         titer2 <- textBufferGetEndIter buf
+                        -- textViewScrollToIter no anda bien, por eso uso scrollToMark
                         mark <- textBufferCreateMark buf Nothing titer2 False
                         textViewScrollToMark tv mark 0 Nothing
                         widgetShowAll tv
@@ -140,7 +143,16 @@ configCommandConsole= ask >>= \content ->
         return ()
 
 processCommand :: String -> IO String
-processCommand str = return "Procesamiento de comandos no implementado"                    
+processCommand str = do
+    let comm = head $ words str
+    let strExpr = drop ((length comm)+1) str
+    if comm == "eval"
+       then return $ "Evaluo hasta el final. Expresión "++ strExpr
+       else if comm == "step"
+            then return $ "Evaluo un paso "++ strExpr
+            else if comm == "trace"
+                then return $ "Evaluo con traza "++ strExpr
+                else return $"Comando inválido. Posibles comandos: eval, step, trace"
 
 configToolBarButtons :: GuiMonad ()
 configToolBarButtons = ask >>= \content ->

@@ -88,7 +88,8 @@ $(mkLenses ''GState)
 type GStateRef = IORef GState
 
 -- | Mónada de la interfaz.
-type GuiMonad = RWST GReader () GStateRef IO
+type GuiMonad' = RWST GReader () GStateRef 
+type GuiMonad = GuiMonad' IO
 
 instance Reference IORef GuiMonad where
     newRef = liftIO . newRef

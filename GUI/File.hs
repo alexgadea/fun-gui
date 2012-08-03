@@ -63,10 +63,9 @@ checkSelectFile = getGState >>= \st ->
                     Just editBook -> do
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
-                        either (io . print) 
-                               (\env -> updateGState ((^=) gFunEnv env) >>
-                                updateInfoPaned env) eRes
+                        either (\err -> updEnv [] >> io (print err)) updEnv eRes
     where
+        updEnv env = updateGState ((^=) gFunEnv env) >> updateInfoPaned env
         check :: TextView -> GuiMonad (Either ModuleError Environment)
         check textV = io $ do
             buf   <- textViewGetBuffer textV

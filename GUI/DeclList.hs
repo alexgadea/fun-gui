@@ -1,4 +1,4 @@
-{-# Language TypeOperators, RankNTypes#-}
+{-# Language TypeOperators, RankNTypes, DoAndIfThenElse #-}
 -- | Configuración de la lista de declaraciones del panel izquierdo.
 module GUI.DeclList where
 
@@ -76,7 +76,10 @@ updateInfoPaned env = do
             let thmsList    = concatMap (theorems . decls) env
             let valsList    = concatMap (vals . decls) env
             let propsList   = concatMap (props . decls) env
-            
+
+            -- TODO: hay que actualizarlas los expanders aunque las
+            -- listas sean vacías si las listas son vacías: sólo no
+            -- hay que expandir.
             unless (null specsList) $ updateInfo specsList iSpecs w content
             unless (null funcsList) $ updateInfo funcsList iFuncs w content
             unless (null thmsList)  $ updateInfo thmsList  iThms  w content

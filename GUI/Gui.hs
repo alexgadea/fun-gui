@@ -23,6 +23,7 @@ import GUI.EditBook
 import GUI.File
 import GUI.Config
 import GUI.SymbolList
+import GUI.Console
 
 main :: IO ()
 main = do 
@@ -112,47 +113,6 @@ configMenuBarButtons = ask >>= \content -> get >>= \st ->
         onToolButtonClicked checkMButton  (evalRWST checkSelectFile content st >> return ())
             
         return ()
-
-configCommTV :: TextView -> IO ()
-configCommTV commTV = do
-        widgetModifyBase commTV StateNormal backColorCommTV
-        widgetModifyText commTV StateNormal textColorCommTV
-        widgetShowAll commTV
-
-configCommandConsole :: GuiMonad ()
-configCommandConsole= ask >>= \content ->
-        io $ do
-        let entry = content ^. (gFunCommConsole . commEntry)
-        let buf = content ^. (gFunCommConsole . commTBuffer)
-        let tv = content ^. (gFunCommConsole . commTView)
-        entry `on` entryActivate $ io $ do
-                        text <- entryGetText entry
-                        entrySetText entry ""
-                        titer <- textBufferGetEndIter buf
-                        let str = "\n$ "++text
-                        textBufferInsert buf titer str
-                        res <- processCommand text
-                        titer <- textBufferGetEndIter buf
-                        textBufferInsert buf titer ("\n\t"++res)
-                        titer2 <- textBufferGetEndIter buf
-                        -- textViewScrollToIter no anda bien, por eso uso scrollToMark
-                        mark <- textBufferCreateMark buf Nothing titer2 False
-                        textViewScrollToMark tv mark 0 Nothing
-                        widgetShowAll tv
-                        return ()
-        return ()
-
-processCommand :: String -> IO String
-processCommand str = do
-    let comm = head $ words str
-    let strExpr = drop ((length comm)+1) str
-    if comm == "eval"
-       then return $ "Evaluo hasta el final. Expresión "++ strExpr
-       else if comm == "step"
-            then return $ "Evaluo un paso "++ strExpr
-            else if comm == "trace"
-                then return $ "Evaluo con traza "++ strExpr
-                else return $"Comando inválido. Posibles comandos: eval, step, trace"
 
 configToolBarButtons :: GuiMonad ()
 configToolBarButtons = ask >>= \content ->

@@ -14,8 +14,6 @@ import Control.Monad.RWS
 import Data.IORef
 import Data.Reference
 
-io = liftIO
-
 -- | Información sobre los items del menuBar.
 data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(mkLenses ''FunMenuBar)
@@ -39,6 +37,12 @@ data FunCommConsole = FunCommConsole {
                           , _commTView :: TextView
                       }
 $(mkLenses ''FunCommConsole)
+
+data FunInfoConsole = FunInfoConsole {
+                            _infoConTBuffer :: TextBuffer
+                          , _infoConTView :: TextView
+                      }
+$(mkLenses ''FunInfoConsole)
 
 data FunEditorPaned = FunEditorPaned { _epaned :: VPaned }
 $(mkLenses ''FunEditorPaned)
@@ -73,6 +77,7 @@ data GReader = GReader { _gFunWindow    :: Window
                        , _gFunSymbolList :: FunSymList
                        , _gFunEditorPaned :: FunEditorPaned
                        , _gFunCommConsole :: FunCommConsole
+                       , _gFunInfoConsole :: FunInfoConsole
                        }
 $(mkLenses ''GReader)
 

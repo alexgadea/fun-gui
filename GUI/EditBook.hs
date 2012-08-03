@@ -17,6 +17,7 @@ import Data.Maybe (fromJust,fromMaybe)
 
 import GUI.GState
 import GUI.Config
+import GUI.Utils
 
 -- | Configura el label respectivo a al informe de las lineas del campo de texto.
 configTextView :: TextBufferClass buffer => Label -> buffer -> GuiMonad ()

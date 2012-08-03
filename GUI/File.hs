@@ -10,6 +10,8 @@ import Data.Maybe (fromMaybe)
 import GUI.GState
 import GUI.DeclList
 import GUI.EditBook
+import GUI.Utils
+import GUI.InfoConsole
 
 import Fun.Environment
 import Fun.Module.Error
@@ -63,7 +65,8 @@ checkSelectFile = getGState >>= \st ->
                     Just editBook -> do
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
-                        either (\err -> updEnv [] >> io (print err)) updEnv eRes
+                        either (\err -> updEnv [] >> printErrorMsg (show err)) 
+                               (\env -> updEnv env >> printInfoMsg "Módulo Cargado.") eRes
     where
         updEnv env = updateGState ((^=) gFunEnv env) >> updateInfoPaned env
         check :: TextView -> GuiMonad (Either ModuleError Environment)

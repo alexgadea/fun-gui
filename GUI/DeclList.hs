@@ -4,6 +4,7 @@ module GUI.DeclList where
 
 import GUI.GState
 import GUI.EditBook
+import GUI.Utils
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 import Graphics.UI.Gtk.Gdk.Events 

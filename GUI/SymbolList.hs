@@ -18,6 +18,7 @@ import qualified Data.Foldable as F
 import GUI.GState
 import GUI.EditBook
 import GUI.Config
+import GUI.Utils
 
 type SymItem = String
 

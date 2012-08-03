@@ -1,4 +1,4 @@
-module GUI.Console where
+module GUI.EvalConsole where
 
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
@@ -25,6 +25,7 @@ import GUI.EditBook
 import GUI.File
 import GUI.Config
 import GUI.SymbolList
+import GUI.Utils
 
 import Fun.Environment
 import Fun.Eval
@@ -71,25 +72,22 @@ configCommandConsole= ask >>= \content ->
         let buf = content ^. (gFunCommConsole . commTBuffer)
         let tv = content ^. (gFunCommConsole . commTView)
         do _ <- entry `on` entryActivate $ io $ do
-                 text <- entryGetText entry
-                 entrySetText entry ""
-                 titer <- textBufferGetEndIter buf
-                 textBufferInsertPrompt buf titer $ text
-                 st <- readRef ref
-                 let env = st ^. gFunEnv
-                 res <- processCommand env text
-                 titer <- textBufferGetEndIter buf
-                 textBufferInsertLn buf titer $ fmtEvResult res
-                 titer2 <- textBufferGetEndIter buf
-                 -- textViewScrollToIter no anda bien, por eso uso scrollToMark
-                 mark <- textBufferCreateMark buf Nothing titer2 False
-                 textViewScrollToMark tv mark 0 Nothing
-                 widgetShowAll tv
-                 return ()
-        return ()
-
-textBufferInsertPrompt buf titer = textBufferInsertLn buf titer . ("fun> "++)
-textBufferInsertLn buf titer = textBufferInsert buf titer . ("\n"++)
+                    text <- entryGetText entry
+                    entrySetText entry ""
+                    titer <- textBufferGetEndIter buf
+                    textBufferInsertPrompt buf titer $ text
+                    st <- readRef ref
+                    let env = st ^. gFunEnv
+                    res <- processCommand env text
+                    titer <- textBufferGetEndIter buf
+                    textBufferInsertLn buf titer $ fmtEvResult res
+                    titer2 <- textBufferGetEndIter buf
+                    -- textViewScrollToIter no anda bien, por eso uso scrollToMark
+                    mark <- textBufferCreateMark buf Nothing titer2 False
+                    textViewScrollToMark tv mark 0 Nothing
+                    widgetShowAll tv
+                    return ()
+           return ()
 
 fmtEvResult :: EvResult -> String
 fmtEvResult (EvErr err) = err

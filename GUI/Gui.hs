@@ -23,7 +23,8 @@ import GUI.EditBook
 import GUI.File
 import GUI.Config
 import GUI.SymbolList
-import GUI.Console
+import GUI.EvalConsole
+import GUI.InfoConsole
 
 main :: IO ()
 main = do 
@@ -71,10 +72,16 @@ makeGState sXml = do
         commTV <- xmlGetWidget xml castToTextView "commandTView"
         commEntry <- xmlGetWidget xml castToEntry "commandEntry"
         
+        infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
+        
         panedSetPosition edPaned 400
         configCommTV commTV
         
         commTBuf <- textViewGetBuffer commTV
+        
+        infoTBuf <- textViewGetBuffer infoTV
+        
+        configInfoConsoleTV infoTV infoTBuf
         
         let funFunMenuBarST = FunMenuBar quitButton
         let funToolbarST = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB
@@ -82,7 +89,9 @@ makeGState sXml = do
         let funInfoPanedST = FunInfoPaned iSpecs iFuncs iThms iVals iProps
         let funSymListST    = FunSymList goLeftBox scrollW symIV goRightBox
         let funCommConsole = FunCommConsole commEntry commTBuf commTV
+        let funInfoConsole = FunInfoConsole infoTBuf infoTV
         let funEditorPaned = FunEditorPaned edPaned
+        
         
         gState <- newRef $ GState [] Nothing
         let gReader = GReader window 
@@ -93,6 +102,7 @@ makeGState sXml = do
                               funSymListST
                               funEditorPaned
                               funCommConsole
+                              funInfoConsole
         return (gReader,gState)
 
 configMenuBarButtons :: GuiMonad ()

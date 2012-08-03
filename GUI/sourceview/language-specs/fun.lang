@@ -42,7 +42,7 @@
   <definitions>
     <context id="fun">
       <include>
-        <context id="keywords" style-ref="declaration">
+        <context id="keywords" style-ref="keyword">
           <keyword>where</keyword>
           <keyword>in</keyword>
           <keyword>for</keyword>
@@ -52,6 +52,9 @@
           <keyword>with</keyword>
           <keyword>case</keyword>
           <keyword>-\></keyword>
+          <keyword>module</keyword>
+          <keyword>import</keyword>
+          <keyword>derived from</keyword>
         </context>
 
         <context id="declarations" style-ref="declaration">
@@ -59,7 +62,6 @@
           <keyword>fun</keyword>
           <keyword>value</keyword>
           <keyword>proof</keyword>
-          <keyword>derived from</keyword>
         </context>
 
         <context id="types" style-ref="type">

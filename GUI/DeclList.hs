@@ -13,6 +13,8 @@ import Data.Text(unpack,pack)
 import Data.Maybe
 import Data.Map (empty,elems)
 import Data.Tree
+import Data.Tuple (swap)
+import Text.Parsec.Pos (sourceLine,sourceColumn)
 
 import qualified Data.Foldable as F (mapM_) 
 
@@ -42,31 +44,67 @@ setupDeclList :: (Decl d, Show d) => [(DeclPos,d)] -> TreeView -> Window ->
 setupDeclList decls tv pwin  = listDecls decls >>= setupDList
     where
         setupDList :: TreeStore DeclItem -> GuiMonad (TreeStore DeclItem)
-        setupDList list = io $
-            treeViewGetColumn tv 0 >>=
-            F.mapM_ (treeViewRemoveColumn tv) >>
-            treeViewColumnNew >>= \col ->
-            treeViewSetHeadersVisible tv False >>
-            treeViewSetModel tv list >>
-            cellRendererTextNew >>= \renderer ->
-            cellLayoutPackStart col renderer False >>
-            cellLayoutSetAttributes col renderer list 
-                                (\ind -> [ cellText := fst ind ]) >>
-            treeViewAppendColumn tv col >>
-            treeViewGetSelection tv >>= \tree ->
-            onSelectionChanged tree (onSelection list tree) >>
-            return list
-        onSelection :: TreeStore DeclItem -> TreeSelection -> IO ()
-        onSelection list tree = do
-                sel <- treeSelectionGetSelectedRows tree
-                if null sel then return ()
-                else do
-                    let h = head sel
-                    (_,pos) <- treeStoreGetValue list h
-                    putStrLn (show pos)
-                    treeSelectionUnselectAll tree
-                    return ()
+        setupDList list = do
+            content <- ask
+            s <- get
+            io $
+                treeViewGetColumn tv 0 >>=
+                F.mapM_ (treeViewRemoveColumn tv) >>
+                treeViewColumnNew >>= \col ->
+                treeViewSetHeadersVisible tv False >>
+                treeViewSetModel tv list >>
+                cellRendererTextNew >>= \renderer ->
+                cellLayoutPackStart col renderer False >>
+                cellLayoutSetAttributes col renderer list 
+                                    (\ind -> [ cellText := fst ind ]) >>
+                treeViewAppendColumn tv col >>
+                treeViewGetSelection tv >>= \tree ->
+                onSelectionChanged tree (evalRWST (onSelection list tree) content s >> return ()) >>
+                return list
 
+onSelection :: TreeStore DeclItem -> TreeSelection -> GuiMonad ()
+onSelection list tree = do
+
+    sel <- io $ treeSelectionGetSelectedRows tree
+    if null sel then return ()
+        else do
+            let h = head sel
+            (_,pos) <- io $ treeStoreGetValue list h
+            
+            s <- getGState
+            let Just ebook = s ^. gFunEditBook
+            let notebook = ebook ^. book
+            let infoModules = ebook ^. modules
+            let mName = moduleName pos
+            let mntab = lookup mName (map swap infoModules)
+            maybe (return ())
+                (\ntab -> do
+                    io $ notebookSetCurrentPage notebook ntab
+                    (_,tview) <- getTextEditFromFunEditBook ebook
+                    tbuffer <- io $ textViewGetBuffer tview
+                    
+                    io $ selectText pos tbuffer tview infoModules
+                    io $ putStrLn (show pos)
+                    io $ treeSelectionUnselectAll tree
+                    return ()
+                ) mntab
+                    
+selectText :: DeclPos -> TextBuffer -> TextView -> ModGui -> IO ()
+selectText pos tbuf tview infoModules = do
+    let initLine = sourceLine $ begin pos
+    let endLine = sourceLine $ end pos
+    
+--     let initOffset = sourceColumn $ begin pos
+--     let endOffset = sourceColumn $ end pos 
+--     iter1 <- textBufferGetIterAtLineOffset tbuf (initLine-1) (initOffset-1)
+--     iter2 <- textBufferGetIterAtLineOffset tbuf (endLine-1) (endOffset-1)
+       
+    iter1 <- textBufferGetIterAtLine tbuf (initLine-1)
+    iter2 <- textBufferGetIterAtLine tbuf (endLine-1)
+
+    
+    textBufferSelectRange tbuf iter1 iter2
+                    
 -- | Configura las acciones de los DeclItem del panel izquierdo.
 updateInfoPaned :: Environment -> GuiMonad ()
 updateInfoPaned env = do

@@ -15,6 +15,7 @@ import GUI.InfoConsole
 
 import Fun.Environment
 import Fun.Module.Error
+import Fun.Module (ModName)
 
 import Lens.Family
 
@@ -30,7 +31,7 @@ createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
                 io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
                 io (containerRemove (castToContainer editorPaned) drawArea) >>
                 createEditBook mname mcode >>= \editBook -> 
-                updateGState ((^=) gFunEditBook (Just $ FunEditBook editBook))
+                updateGState ((^=) gFunEditBook (Just $ FunEditBook editBook []))
             Just editBook -> let ebook = editBook ^. book in
                 createTextEdit mcode >>= \textEdit ->
                 (\name -> 
@@ -66,10 +67,12 @@ checkSelectFile = getGState >>= \st ->
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
                         either (\err -> updEnv [] >> printErrorMsg (show err)) 
-                               (\env -> updEnv env >> printInfoMsg "Módulo Cargado.") eRes
+                               (\(env,mName) -> updEnv env >> 
+                                        printInfoMsg "Módulo Cargado." >>
+                                        updateModulesFunEditBook editBook mName) eRes
     where
         updEnv env = updateGState ((^=) gFunEnv env) >> updateInfoPaned env
-        check :: TextView -> GuiMonad (Either ModuleError Environment)
+        check :: TextView -> GuiMonad (Either ModuleError (Environment,ModName))
         check textV = io $ do
             buf   <- textViewGetBuffer textV
             start <- textBufferGetStartIter buf

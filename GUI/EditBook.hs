@@ -12,12 +12,15 @@ import Control.Arrow
 
 import Lens.Family
 
-import Data.Text (pack)
+import Data.Text (pack,unpack)
 import Data.Maybe (fromJust,fromMaybe)
+import Data.List (delete)
 
 import GUI.GState
 import GUI.Config
 import GUI.Utils
+
+import Fun.Module (ModName)
 
 -- | Configura el label respectivo a al informe de las lineas del campo de texto.
 configTextView :: TextBufferClass buffer => Label -> buffer -> GuiMonad ()
@@ -150,6 +153,30 @@ getTextEditFromFunEditBook feditBook = do
             [cpBox]   <- io $ containerGetChildren (castToContainer cpPV)
             [_,tv]    <- io $ containerGetChildren (castToContainer cpBox)
             return (textViewN,castToTextView tv)
+            
+-- | Dado un EditBook y un nombre de módulo, actualiza el mapeo entre tabs-nombres de modulos
+--   asignando al tab seleccionado el nombre de modulo.
+updateModulesFunEditBook :: FunEditBook -> ModName -> GuiMonad ()
+updateModulesFunEditBook feditBook mName = do
+    let notebook = feditBook ^. book
+    let infoMods = feditBook ^. modules    
+    cPageNum <- io $ notebookGetCurrentPage notebook
+    
+    -- actualizamos el label del tab con el nombre del modulo
+    Just cpSW <- io $ notebookGetNthPage notebook cPageNum
+    io $ notebookSetTabLabelText notebook cpSW (unpack mName)
+    
+    case lookup cPageNum infoMods of
+        Nothing -> updateGState ((^=) gFunEditBook (Just $ 
+                                                      feditBook { _book = notebook
+                                                                , _modules = (cPageNum,mName):infoMods
+                                                                } ))
+        Just m -> let infoMods' = delete (cPageNum,m) infoMods in
+                      updateGState ((^=) gFunEditBook (Just $ 
+                                            feditBook { _book = notebook
+                                                      , _modules = (cPageNum,mName):infoMods'
+                                                                } ))
+
 
 -- | Crea un editBook, el cual tiene un primer campo de texto con nombre 
 -- y contenido de ser posible.

@@ -23,9 +23,11 @@ import GUI.Utils
 type SymItem = String
 
 listSymbols :: IO (ListStore SymItem)
-listSymbols = listStoreNew $ map (addItem) quantifiersList
+listSymbols = listStoreNew $ ["〈"] ++ ["〉"]
+                          ++ map (addItem) quantifiersList
                           ++ map (addItem) operatorsList
                           ++ map (addItem) constantsList
+                          
 
     where addItem :: Syntactic s =>  s -> SymItem
           addItem syn = unpack $ tRepr syn
@@ -120,12 +122,18 @@ oneSelection list path = do
         configSelection :: FunEditBook -> GuiMonad ()
         configSelection editBook = 
                 getTextEditFromFunEditBook editBook >>= \(_,tv) ->
-                io (getElem list path) >>=  F.mapM_ (addToEndOfBuffer tv)
+                io (getElem list path) >>=  -- F.mapM_ (addToEndOfBuffer tv)
+                F.mapM_ (addToCursorBuffer tv)
         addToEndOfBuffer :: TextView -> String -> GuiMonad ()
         addToEndOfBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv
                 start <- textBufferGetEndIter buf
                 textBufferInsert buf start repr 
+        addToCursorBuffer :: TextView -> String -> GuiMonad ()
+        addToCursorBuffer tv repr = io $ do
+                buf <- textViewGetBuffer tv
+                textBufferInsertAtCursor buf repr
+                widgetGrabFocus tv
 
 getElem :: ListStore a -> TreePath -> IO (Maybe a)
 getElem l p = treeModelGetIter l p >>= \i ->

@@ -103,6 +103,85 @@
               </widget>
             </child>
             <child>
+              <widget class="GtkMenuItem" id="menuitem5">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Insertar</property>
+                <child>
+                  <widget class="GtkMenu" id="menu4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="ubuntu_local">True</property>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="insertSpecItem">
+                        <property name="label">Especificación</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="insertFunItem">
+                        <property name="label">Función</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="insertValItem">
+                        <property name="label">Valor</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image3">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="insertThmItem">
+                        <property name="label">Teorema</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image4">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
               <widget class="GtkMenuItem" id="menuitem3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -153,6 +232,7 @@
               <widget class="GtkToolButton" id="newFileButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Nuevo Archivo</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
@@ -167,6 +247,7 @@
               <widget class="GtkToolButton" id="openFileButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Abrir</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-open</property>
@@ -180,6 +261,7 @@
               <widget class="GtkToolButton" id="saveFileButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Guardar</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
@@ -194,6 +276,7 @@
               <widget class="GtkToolButton" id="saveFileAtButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Guardar Como</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
@@ -208,6 +291,7 @@
               <widget class="GtkToolButton" id="closeFileButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Cerrar archivo</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
@@ -222,6 +306,7 @@
               <widget class="GtkToolButton" id="checkModuleButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip" translatable="yes">Cargar módulo</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-convert</property>

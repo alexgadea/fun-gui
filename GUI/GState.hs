@@ -26,6 +26,7 @@ data FunToolbar = FunToolbar { _newFB     :: ToolButton
                              , _saveAtFB  :: ToolButton
                              , _closeFB   :: ToolButton
                              , _checkMB   :: ToolButton
+                             , _symFrameB :: ToggleToolButton
                              }
 $(mkLenses ''FunToolbar)
 
@@ -66,7 +67,8 @@ data FunEditBook = FunEditBook { _book :: Notebook
 $(mkLenses ''FunEditBook)
 
 -- | Información sobre la lista de símbolos.
-data FunSymList = FunSymList { _gGoLeftBox   :: HBox
+data FunSymList = FunSymList { _gSymFrame    :: Frame
+                             , _gGoLeftBox   :: HBox
                              , _gScrollW     :: ScrolledWindow
                              , _gSymIconView :: IconView
                              , _gGoRightBox  :: HBox

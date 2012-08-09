@@ -8,6 +8,7 @@ import Control.Monad.IO.Class
 import Control.Monad.State
 import Control.Monad.RWS
 import Control.Arrow
+import Control.Applicative
 
 import Lens.Family
 
@@ -42,6 +43,7 @@ main = do
     saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
     closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
     checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
+    symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
 
     -- items
     insertSpecItem <- xmlGetWidget xml castToImageMenuItem "insertSpecItem"
@@ -57,6 +59,7 @@ main = do
     iVals  <- xmlGetWidget xml castToExpander "expVals"
     iProps <- xmlGetWidget xml castToExpander "expProps"
 
+    symFrame   <- xmlGetWidget xml castToFrame "symFrame"
     goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
     scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
     symIV      <- xmlGetWidget xml castToIconView "symbolList"
@@ -81,26 +84,25 @@ main = do
     configInfoConsoleTV infoTV infoTBuf
 
     let funFunMenuBarST = FunMenuBar quitButton
-    let funToolbarST = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB
-    let funMainPanedST = FunMainPaned mainPaned
-    let funInfoPanedST = FunInfoPaned iSpecs iFuncs iThms iVals iProps
-    let funSymListST    = FunSymList goLeftBox scrollW symIV goRightBox
-    let funCommConsole = FunCommConsole commEntry commTBuf commTV
-    let funInfoConsole = FunInfoConsole infoTBuf infoTV
-    let funEditorPaned = FunEditorPaned edPaned
-
+    let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
+    let funMainPanedST  = FunMainPaned mainPaned
+    let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
+    let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+    let funCommConsole  = FunCommConsole commEntry commTBuf commTV
+    let funInfoConsole  = FunInfoConsole infoTBuf infoTV
+    let funEditorPaned  = FunEditorPaned edPaned
 
     gState <- newRef $ GState [] Nothing
     
     let gReader = GReader window 
-                            funFunMenuBarST 
-                            funToolbarST 
-                            funMainPanedST
-                            funInfoPanedST
-                            funSymListST
-                            funEditorPaned
-                            funCommConsole
-                            funInfoConsole
+                          funFunMenuBarST 
+                          funToolbarST 
+                          funMainPanedST
+                          funInfoPanedST
+                          funSymListST
+                          funEditorPaned
+                          funCommConsole
+                          funInfoConsole
 
     runRWST (do configWindow
                 configInsertMenuItems insertSpecItem insertFunItem insertValItem insertThmItem
@@ -111,9 +113,6 @@ main = do
             ) gReader gState
 
     mainGUI
-
--- makeGState :: String -> IO (GReader,GStateRef) 
--- makeGState sXml = do
 
 
 configInsertMenuItems :: ImageMenuItem -> ImageMenuItem -> 
@@ -129,6 +128,72 @@ configInsertMenuItems specItem funItem valItem thmItem =
     return ()
     -- falta implementar thmItem
 
+makeGState :: String -> IO (GReader,GStateRef) 
+makeGState sXml = do
+        Just xml <- xmlNew sXml
+        
+        newFB <- xmlGetWidget xml castToToolButton "newFileButton"
+        openFB <- xmlGetWidget xml castToToolButton "openFileButton"
+        saveFB <- xmlGetWidget xml castToToolButton "saveFileButton"
+        saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
+        closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
+        checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
+        symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+        
+        mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
+        
+        iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
+        iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
+        iThms  <- xmlGetWidget xml castToExpander "expThms"
+        iVals  <- xmlGetWidget xml castToExpander "expVals"
+        iProps <- xmlGetWidget xml castToExpander "expProps"
+        
+        symFrame   <- xmlGetWidget xml castToFrame "symFrame"
+        goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
+        scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
+        symIV      <- xmlGetWidget xml castToIconView "symbolList"
+        goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
+        
+        window <- xmlGetWidget xml castToWindow "mainWindow"
+        quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
+        
+        edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
+        commTV <- xmlGetWidget xml castToTextView "commandTView"
+        commEntry <- xmlGetWidget xml castToEntry "commandEntry"
+        
+        infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
+        
+        panedSetPosition edPaned 400
+        configCommTV commTV
+        
+        commTBuf <- textViewGetBuffer commTV
+        
+        infoTBuf <- textViewGetBuffer infoTV
+        
+        configInfoConsoleTV infoTV infoTBuf
+        
+        let funFunMenuBarST = FunMenuBar quitButton
+        let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
+        let funMainPanedST  = FunMainPaned mainPaned
+        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
+        let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+        let funCommConsole  = FunCommConsole commEntry commTBuf commTV
+        let funInfoConsole  = FunInfoConsole infoTBuf infoTV
+        let funEditorPaned  = FunEditorPaned edPaned
+        
+        
+        gState <- newRef $ GState [] Nothing
+        let gReader = GReader window 
+                              funFunMenuBarST 
+                              funToolbarST 
+                              funMainPanedST
+                              funInfoPanedST
+                              funSymListST
+                              funEditorPaned
+                              funCommConsole
+                              funInfoConsole
+        return (gReader,gState)
+
 configMenuBarButtons :: GuiMonad ()
 configMenuBarButtons = ask >>= \content -> get >>= \st ->
         liftIO $ do
@@ -138,15 +203,20 @@ configMenuBarButtons = ask >>= \content -> get >>= \st ->
         let saveAtFButton = content ^. (gFunToolbar . saveAtFB)
         let closeFButton  = content ^. (gFunToolbar . closeFB)
         let checkMButton  = content ^. (gFunToolbar . checkMB)
+        let symFButton    = content ^. (gFunToolbar . symFrameB)
         
-        onToolButtonClicked newFButton    (evalRWST createNewFile content st >> return ())
-        onToolButtonClicked openFButton   (evalRWST openFile content st >> return ())
-        onToolButtonClicked saveFButton   (evalRWST saveFile content st >> return ())
-        onToolButtonClicked saveAtFButton (evalRWST saveAtFile content st >> return ())
-        onToolButtonClicked closeFButton  (evalRWST closeCurrentFile content st >> return ())
-        onToolButtonClicked checkMButton  (evalRWST checkSelectFile content st >> return ())
+        onToolButtonClicked newFButton    (eval createNewFile content st)
+        onToolButtonClicked openFButton   (eval openFile content st)
+        onToolButtonClicked saveFButton   (eval saveFile content st)
+        onToolButtonClicked saveAtFButton (eval saveAtFile content st)
+        onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
+        onToolButtonClicked checkMButton  (eval checkSelectFile content st)
+        onToolButtonClicked symFButton    (eval configSymFrameButton content st)
             
         return ()
+    where
+        eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
+        eval action content str = evalRWST action content str >> return ()
 
 configToolBarButtons :: GuiMonad ()
 configToolBarButtons = ask >>= \content ->
@@ -161,10 +231,7 @@ configWindow :: GuiMonad ()
 configWindow = ask >>= \content -> 
         liftIO $ do
         let window = content ^. gFunWindow
-        set window [ windowDefaultWidth := 1000
-                   , windowDefaultHeight := 600
-                   ]
-
+        windowMaximize window
         widgetShowAll window
         onDestroy window mainQuit
         return ()

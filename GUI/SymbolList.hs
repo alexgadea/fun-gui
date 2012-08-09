@@ -23,8 +23,7 @@ import GUI.Utils
 type SymItem = String
 
 listSymbols :: IO (ListStore SymItem)
-listSymbols = listStoreNew $ ["〈"] ++ ["〉"]
-                          ++ map (addItem) quantifiersList
+listSymbols = listStoreNew $ map (\item -> "〈"++ addItem item ++ ":" ++ ":" ++ "〉") quantifiersList
                           ++ map (addItem) operatorsList
                           ++ map (addItem) constantsList
                           
@@ -32,10 +31,22 @@ listSymbols = listStoreNew $ ["〈"] ++ ["〉"]
     where addItem :: Syntactic s =>  s -> SymItem
           addItem syn = unpack $ tRepr syn
 
+configSymFrameButton :: GuiMonad ()
+configSymFrameButton = do
+                content <-  ask
+                let sf          = content ^. (gFunSymbolList . gSymFrame)
+                let sfButton    = content ^. (gFunToolbar . symFrameB)
+                
+                active <- io $ toggleToolButtonGetActive sfButton
+                if active 
+                   then io $ widgetShowAll sf
+                   else io $ widgetHideAll sf
+
 configSymbolList :: GuiMonad ()
 configSymbolList = do
                 content <-  ask
                 s <- get
+                let sf      = content ^. (gFunSymbolList . gSymFrame)
                 let iv      = content ^. (gFunSymbolList . gSymIconView)
                 let goLB    = content ^. (gFunSymbolList . gGoLeftBox)
                 let goRB    = content ^. (gFunSymbolList . gGoRightBox)
@@ -45,6 +56,8 @@ configSymbolList = do
                 io $ setupScrolledWindowSymbolList scrollW goLB goRB s
                 io $ setupSymbolList iv list
                 eventsSymbolList iv list
+                io $ widgetHideAll sf
+                
                 return ()
 
 -- | La configuración de la lista de símbolos propiamente hablando.
@@ -116,7 +129,6 @@ oneSelection :: ListStore SymItem -> TreePath -> GuiMonad ()
 oneSelection list path = do
                 s <- getGState
                 let mEditBook = s ^. gFunEditBook
-
                 maybe (return ()) configSelection mEditBook
     where
         configSelection :: FunEditBook -> GuiMonad ()
@@ -124,16 +136,10 @@ oneSelection list path = do
                 getTextEditFromFunEditBook editBook >>= \(_,tv) ->
                 io (getElem list path) >>=  -- F.mapM_ (addToEndOfBuffer tv)
                 F.mapM_ (addToCursorBuffer tv)
-        addToEndOfBuffer :: TextView -> String -> GuiMonad ()
-        addToEndOfBuffer tv repr = io $ do
-                buf <- textViewGetBuffer tv
-                start <- textBufferGetEndIter buf
-                textBufferInsert buf start repr 
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv
                 textBufferInsertAtCursor buf repr
-                widgetGrabFocus tv
 
 getElem :: ListStore a -> TreePath -> IO (Maybe a)
 getElem l p = treeModelGetIter l p >>= \i ->

@@ -23,6 +23,7 @@ import Control.Monad.RWS
 import Lens.Family
 
 import Fun.Decl
+import Fun.Decl.Error
 import Fun.Environment
 import Fun.Module
 import Fun.Declarations
@@ -84,7 +85,6 @@ onSelection list tree = do
                     tbuffer <- io $ textViewGetBuffer tview
                     
                     io $ selectText pos tbuffer tview infoModules
-                    io $ putStrLn (show pos)
                     io $ treeSelectionUnselectAll tree
                     return ()
                 ) mntab
@@ -116,17 +116,23 @@ updateInfoPaned env = do
             let valsList    = concatMap (vals . decls) env
             let propsList   = concatMap (props . decls) env
 
-            -- TODO: hay que actualizarlas los expanders aunque las
-            -- listas sean vacías si las listas son vacías: sólo no
-            -- hay que expandir.
-            unless (null specsList) $ updateInfo specsList iSpecs w content
-            unless (null funcsList) $ updateInfo funcsList iFuncs w content
-            unless (null thmsList)  $ updateInfo thmsList  iThms  w content
-            unless (null valsList)  $ updateInfo valsList  iVals  w content
-            unless (null propsList) $ updateInfo propsList iProps w content
+            updateInfo specsList iSpecs w content
+            updateInfo funcsList iFuncs w content
+            updateInfo thmsList  iThms  w content
+            updateInfo valsList  iVals  w content
+            updateInfo propsList iProps w content
             
             return ()
     where
+--         updateInfo :: (Decl d, Show d) => [(DeclPos, d)] -> 
+--                       ((Expander -> Lens.Family.Getting Expander b') -> 
+--                         FunInfoPaned -> 
+--                         Lens.Family.Getting Expander FunInfoPaned) -> 
+--                       Window -> GReader -> GuiMonad ()
+        updateInfo [] getExpndr w content = do
+                    let expander = content ^. (gFunInfoPaned . getExpndr)
+                    io $ cleanExpander expander
+                    io $ set expander [ expanderExpanded := False ]
         updateInfo decls getExpndr w content = do
                     let expander = content ^. (gFunInfoPaned . getExpndr)
                     tv <- io treeViewNew

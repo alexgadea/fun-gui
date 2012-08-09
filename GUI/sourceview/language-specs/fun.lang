@@ -34,6 +34,7 @@
     <style id="type" _name="Data Type" map-to="def:type"/>
     <style id="specblock" _name="Specification" map-to="def:specblock"/>
     <style id="funblock" _name="Function" map-to="def:funblock"/>
+    <style id="valblock" _name="Val" map-to="def:valblock"/>
     <style id="proofblock" _name="Proof" map-to="def:proofblock"/>
     <style id="proofJustify" _name="Proof Justify" map-to="def:justificationProof"/>
     <style id="proofRelation" _name="Proof Relation" map-to="def:relationProof"/>
@@ -89,7 +90,17 @@
             <context ref="keywords" />
           </include>
         </context>
-
+        
+        <context id="valblocks" style-ref="valblock">
+          <start>let val</start>
+          <end>end</end>
+          <include>
+            <context ref="types" />
+            <context ref="declarations" />
+            <context ref="keywords" />
+          </include>
+        </context>
+        
         <context id="proofblocks" style-ref="proofblock">
           <start>begin proof</start>
           <end>end proof</end>

@@ -51,13 +51,11 @@ configLanguage buf = liftIO $ do
 -- | Configuración del sourceView.
 configSourceView :: SourceView -> GuiMonad ()
 configSourceView sv = io $ do
-        set sv [ sourceViewShowLineNumbers := True
-               , sourceViewShowRightMargin := True
-               , sourceViewIndentWidth := funIdentWidth
-               , sourceViewAutoIndent  := autoIdent
-               , sourceViewIndentOnTab := setIndentOnTab
-               , sourceViewInsertSpacesInsteadOfTabs := spacesInsteadTab
-               ]                
+        sourceViewSetIndentWidth sv funIdentWidth
+        sourceViewSetAutoIndent sv autoIdent
+        sourceViewSetIndentOnTab sv setIndentOnTab
+        sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
+        sourceViewSetShowLineNumbers sv True
         
 
 -- | Configuración de la ventana de scroll, que contiene el campo de texto.
@@ -76,7 +74,7 @@ configNotebook nb = io $
                    ]
 
 -- | Crea un campo de texto y lo llena, de ser posible, con el string.
-createTextEntry :: Maybe String -> GuiMonad HBox
+createTextEntry :: Maybe String -> GuiMonad SourceView
 createTextEntry mcode = do
             hbox <- io $ hBoxNew False 0
             buf <- io $ sourceBufferNew Nothing
@@ -87,9 +85,11 @@ createTextEntry mcode = do
             sourceview <- io $ sourceViewNewWithBuffer buf
 
             configSourceView sourceview
-            io $ boxPackStart hbox sourceview PackGrow 0
             
-            return hbox
+            -- io $ boxPackStart hbox l PackNatural 0
+            -- io $ boxPackStart hbox sourceview PackGrow 0
+            
+            return sourceview
     where
         loadCode :: TextBufferClass tbuffer => tbuffer -> String -> IO ()
         loadCode buf code = do
@@ -103,9 +103,18 @@ createTextEdit mcode = do
             configScrolledWindow swindow
                         
             texte <- createTextEntry mcode
-            io $ scrolledWindowAddWithViewport swindow texte
-            madj <- io $ containerGetFocusVAdjustment swindow
-            io $ maybe (return ()) (containerSetFocusVAdjustment texte) madj
+            
+            --portv <- io $ viewportNew hAdj vAdj
+            --io $ set portv   [containerChild := texte]
+            
+            io $  containerAdd swindow texte
+            
+            io $ widgetShowAll texte
+            
+            --io $ widgetShowAll portv
+            
+            --io $ set swindow [containerChild := portv]
+            
             io $ widgetShowAll swindow
             
             return swindow
@@ -118,9 +127,7 @@ getTextEditFromFunEditBook feditBook = do
             cPageNum       <- io $ notebookGetCurrentPage notebook
             Just cpSW      <- io $ notebookGetNthPage notebook cPageNum
             Just textViewN <- io $ notebookGetTabLabelText notebook cpSW
-            [cpPV]    <- io $  containerGetChildren (castToContainer cpSW)
-            [cpBox]   <- io $ containerGetChildren (castToContainer cpPV)
-            [_,tv]    <- io $ containerGetChildren (castToContainer cpBox)
+            [tv]    <- io $  containerGetChildren (castToContainer cpSW)
             return (textViewN,castToTextView tv)
             
 -- | Dado un EditBook y un nombre de módulo, actualiza el mapeo entre tabs-nombres de modulos

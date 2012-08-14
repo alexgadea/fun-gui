@@ -69,12 +69,12 @@ checkSelectFile = getGState >>= \st ->
                     Just editBook -> do
                         (_,textV) <- getTextEditFromFunEditBook editBook
                         eRes <- check textV
-                        either (\err -> updEnv [] >> printErrorMsg (show err)) 
-                               (\(env,mName) -> updEnv env >> 
+                        either (\err -> updEnv [] Nothing >> printErrorMsg (show err)) 
+                               (\(env,mName) -> updEnv env (Just mName) >> 
                                         printInfoMsg "Módulo Cargado." >>
                                         updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env = updateGState ((<~) gFunEnv env) >> updateInfoPaned env
+        updEnv env mname = updateGState ((<~) gFunEnv env) >> updateInfoPaned env mname
         check :: TextView -> GuiMonad (Either ModuleError (Environment,ModName))
         check textV = io $ do
             buf   <- textViewGetBuffer textV

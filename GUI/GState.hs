@@ -61,6 +61,7 @@ data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  , _iThms     :: Expander
                                  , _iVals     :: Expander
                                  , _iProps    :: Expander
+                                 , _loadedMod :: Label
                                  }
 $(mkLenses ''FunInfoPaned)
 

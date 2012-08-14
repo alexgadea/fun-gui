@@ -140,6 +140,7 @@ oneSelection list path = do
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv
                 textBufferInsertAtCursor buf repr
+                widgetGrabFocus tv
 
 getElem :: ListStore a -> TreePath -> IO (Maybe a)
 getElem l p = treeModelGetIter l p >>= \i ->

@@ -29,6 +29,8 @@ import Fun.Environment
 import Fun.Module
 import Fun.Declarations
 
+import GUI.InfoConsole
+
 -- | Nombre a mostrar y acción al hace click.
 type DeclItem = (String, DeclPos)
 
@@ -79,7 +81,8 @@ onSelection list tree = do
             let infoModules = ebook ^. modules
             let mName = moduleName pos
             let mntab = lookup mName (map swap infoModules)
-            maybe (return ())
+            maybe (printInfoMsg ("La declaración seleccionada está definida "++
+                                "en el módulo " ++ unpack mName) >> return ())
                 (\ntab -> do
                     io $ notebookSetCurrentPage notebook ntab
                     (_,tview) <- getTextEditFromFunEditBook ebook
@@ -107,8 +110,8 @@ selectText pos tbuf tview infoModules = do
     textBufferSelectRange tbuf iter1 iter2
                     
 -- | Configura las acciones de los DeclItem del panel izquierdo.
-updateInfoPaned :: Environment -> GuiMonad ()
-updateInfoPaned env = do
+updateInfoPaned :: Environment -> Maybe ModName -> GuiMonad ()
+updateInfoPaned env mname = do
             content <- ask 
             let w = content ^. gFunWindow
             let specsList   = concatMap (specs . decls) env
@@ -122,6 +125,13 @@ updateInfoPaned env = do
             updateInfo thmsList  iThms  w content
             updateInfo valsList  iVals  w content
             updateInfo propsList iProps w content
+            
+            
+            let labModule = content ^. (gFunInfoPaned . loadedMod)
+            
+            maybe (io (labelSetText labModule "Ninguno")) 
+                  (\name -> io (labelSetText labModule $ unpack name))
+                  mname
             
             return ()
     where

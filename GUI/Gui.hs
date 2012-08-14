@@ -60,6 +60,7 @@ main = do
     iThms  <- xmlGetWidget xml castToExpander "expThms"
     iVals  <- xmlGetWidget xml castToExpander "expVals"
     iProps <- xmlGetWidget xml castToExpander "expProps"
+    loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
 
     symFrame   <- xmlGetWidget xml castToFrame "symFrame"
     goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
@@ -90,7 +91,7 @@ main = do
     let funFunMenuBarST = FunMenuBar quitButton
     let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
     let funMainPanedST  = FunMainPaned mainPaned
-    let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
+    let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
     let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
     let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
     let funInfoConsole  = FunInfoConsole infoTBuf infoTV
@@ -151,6 +152,7 @@ makeGState sXml = do
         iThms  <- xmlGetWidget xml castToExpander "expThms"
         iVals  <- xmlGetWidget xml castToExpander "expVals"
         iProps <- xmlGetWidget xml castToExpander "expProps"
+        loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
         
         symFrame   <- xmlGetWidget xml castToFrame "symFrame"
         goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
@@ -181,7 +183,7 @@ makeGState sXml = do
         let funFunMenuBarST = FunMenuBar quitButton
         let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
         let funMainPanedST  = FunMainPaned mainPaned
-        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
+        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
         let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV

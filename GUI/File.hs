@@ -34,7 +34,7 @@ createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
                 io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
                 io (containerRemove (castToContainer editorPaned) drawArea) >>
                 createEditBook mname mcode >>= \editBook -> 
-                updateGState ((<~) gFunEditBook (Just $ FunEditBook editBook []))
+                updateGState ((<~) gFunEditBook (Just $ FunEditBook editBook))
             Just editBook -> let ebook = editBook ^. book in
                 createTextEdit mcode >>= \textEdit ->
                 (\name -> 

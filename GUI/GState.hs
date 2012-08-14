@@ -65,13 +65,8 @@ data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
                                  }
 $(mkLenses ''FunInfoPaned)
 
-
-type ModGui = [(Int,ModName)]
 -- | Información sobre el panel derecho de la interfaz.
-data FunEditBook = FunEditBook { _book :: Notebook
-                               -- modules es un mapeo 1 a 1 entre numero de pestaña abierta del netbook
-                               -- y nombre de modulo.
-                               , _modules :: ModGui}
+data FunEditBook = FunEditBook { _book :: Notebook }
 $(mkLenses ''FunEditBook)
 
 -- | Información sobre la lista de símbolos.

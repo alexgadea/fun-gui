@@ -78,23 +78,31 @@ onSelection list tree = do
             s <- getGState
             let Just ebook = s ^. gFunEditBook
             let notebook = ebook ^. book
-            let infoModules = ebook ^. modules
             let mName = moduleName pos
-            let mntab = lookup mName (map swap infoModules)
-            maybe (printInfoMsg ("La declaración seleccionada está definida "++
-                                "en el módulo " ++ unpack mName) >> return ())
-                (\ntab -> do
-                    io $ notebookSetCurrentPage notebook ntab
-                    (_,tview) <- getTextEditFromFunEditBook ebook
-                    tbuffer <- io $ textViewGetBuffer tview
+            
+            io $ containerForeach notebook
+                    (\child -> notebookGetTabLabelText notebook child >>=
+                    \(Just labtext) ->
+                    if labtext == unpack mName
+                        then selectPage notebook child >>
+                                getTextEditFromNotebook notebook >>= 
+                                \(_,tview) -> textViewGetBuffer tview >>= 
+                                \tbuffer -> selectText pos tbuffer tview >>
+                                treeSelectionUnselectAll tree >>
+                                return ()  
+                        else return () )
+
+                
+    where showModNotLoaded mName = 
+                putStrLn ("La declaración seleccionada está definida "++
+                              "en el módulo " ++ unpack mName)
+          selectPage notebook tab = 
+              notebookPageNum notebook tab >>=
+              \(Just nPage) -> notebookSetCurrentPage notebook nPage
                     
-                    io $ selectText pos tbuffer tview infoModules
-                    io $ treeSelectionUnselectAll tree
-                    return ()
-                ) mntab
                     
-selectText :: DeclPos -> TextBuffer -> TextView -> ModGui -> IO ()
-selectText pos tbuf tview infoModules = do
+selectText :: DeclPos -> TextBuffer -> TextView -> IO ()
+selectText pos tbuf tview = do
     let initLine = sourceLine $ begin pos
     let endLine = sourceLine $ end pos
     

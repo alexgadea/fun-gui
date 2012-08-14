@@ -130,28 +130,25 @@ getTextEditFromFunEditBook feditBook = do
             [tv]    <- io $  containerGetChildren (castToContainer cpSW)
             return (textViewN,castToTextView tv)
             
+-- | similar a la anterior pero en la mónada IO. Le debemos pasar el notebook.
+getTextEditFromNotebook :: Notebook -> IO (String,TextView)
+getTextEditFromNotebook notebook = do
+            cPageNum       <- notebookGetCurrentPage notebook
+            Just cpSW      <- notebookGetNthPage notebook cPageNum
+            Just textViewN <- notebookGetTabLabelText notebook cpSW
+            [tv]    <- containerGetChildren (castToContainer cpSW)
+            return (textViewN,castToTextView tv)
+            
 -- | Dado un EditBook y un nombre de módulo, actualiza el mapeo entre tabs-nombres de modulos
 --   asignando al tab seleccionado el nombre de modulo.
 updateModulesFunEditBook :: FunEditBook -> ModName -> GuiMonad ()
 updateModulesFunEditBook feditBook mName = do
-    let notebook = feditBook ^. book
-    let infoMods = feditBook ^. modules    
+    let notebook = feditBook ^. book  
     cPageNum <- io $ notebookGetCurrentPage notebook
     
     -- actualizamos el label del tab con el nombre del modulo
     Just cpSW <- io $ notebookGetNthPage notebook cPageNum
     io $ notebookSetTabLabelText notebook cpSW (unpack mName)
-    
-    case lookup cPageNum infoMods of
-        Nothing -> updateGState ((<~) gFunEditBook (Just $ 
-                                                      feditBook { _book = notebook
-                                                                , _modules = (cPageNum,mName):infoMods
-                                                                } ))
-        Just m -> let infoMods' = delete (cPageNum,m) infoMods in
-                      updateGState ((<~) gFunEditBook (Just $ 
-                                            feditBook { _book = notebook
-                                                      , _modules = (cPageNum,mName):infoMods'
-                                                                } ))
 
 
 -- | Crea un editBook, el cual tiene un primer campo de texto con nombre 

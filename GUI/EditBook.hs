@@ -22,15 +22,6 @@ import GUI.Utils
 
 import Fun.Module (ModName)
 
--- | Configura el label respectivo a al informe de las lineas del campo de texto.
-configTextView :: TextBufferClass buffer => Label -> buffer -> GuiMonad ()
-configTextView linesI buf = io $ do
-        onBufferChanged buf ( do
-            countlLine <- textBufferGetLineCount buf
-            let iplusone = unlines [show i | i <- [1..countlLine]]
-            labelSetText linesI iplusone )
-        return ()
-
 -- Configura el lenguaje para el sourceView.
 configLanguage :: SourceBuffer -> GuiMonad ()
 configLanguage buf = liftIO $ do
@@ -60,18 +51,13 @@ configLanguage buf = liftIO $ do
 -- | Configuración del sourceView.
 configSourceView :: SourceView -> GuiMonad ()
 configSourceView sv = io $ do
-        sourceViewSetIndentWidth sv funIdentWidth
-        sourceViewSetAutoIndent sv autoIdent
-        sourceViewSetIndentOnTab sv setIndentOnTab
-        sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
+        set sv [ sourceViewShowLineNumbers := True
+               , sourceViewIndentWidth := funIdentWidth
+               , sourceViewAutoIndent  := autoIdent
+               , sourceViewIndentOnTab := setIndentOnTab
+               , sourceViewInsertSpacesInsteadOfTabs := spacesInsteadTab
+               ]                
         
--- | Configuración del aspecto y caracteristicas del label de lineas.
-configInfoLines :: Label -> GuiMonad ()
-configInfoLines l = io $
-            set l [ miscXalign := 0
-                  , miscYalign := 0
-                  , miscXpad   := 2
-                  ]
 
 -- | Configuración de la ventana de scroll, que contiene el campo de texto.
 configScrolledWindow :: ScrolledWindow -> GuiMonad ()
@@ -92,13 +78,7 @@ configNotebook nb = io $
 createTextEntry :: Maybe String -> GuiMonad HBox
 createTextEntry mcode = do
             hbox <- io $ hBoxNew False 0
-            
-            l <- io $ labelNew $ Just "1"
-            configInfoLines l
-            
             buf <- io $ sourceBufferNew Nothing
-            
-            configTextView l buf
             configLanguage buf
             
             maybe (return ()) (io . loadCode buf) mcode
@@ -107,7 +87,6 @@ createTextEntry mcode = do
             
             configSourceView sourceview
             
-            io $ boxPackStart hbox l PackNatural 0
             io $ boxPackStart hbox sourceview PackGrow 0
             
             return hbox
@@ -121,21 +100,10 @@ createTextEntry mcode = do
 createTextEdit :: Maybe String -> GuiMonad ScrolledWindow
 createTextEdit mcode = do
             swindow <- io $ scrolledWindowNew Nothing Nothing
-            configScrolledWindow swindow
-            
-            hAdj <- io $ adjustmentNew 0 0 100 1 10 10
-            vAdj <- io $ adjustmentNew 0 0 100 1 10 10
-            
+                        
             texte <- createTextEntry mcode
-            
-            portv <- io $ viewportNew hAdj vAdj
-            io $ set portv   [containerChild := texte]
-            
-            io $ widgetShowAll texte
-            
-            io $ widgetShowAll portv
-            
-            io $ set swindow [containerChild := portv]
+            io $ containerAdd swindow texte
+            configScrolledWindow swindow
             
             io $ widgetShowAll swindow
             

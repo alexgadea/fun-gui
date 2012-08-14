@@ -1,12 +1,24 @@
 module Sum
 
-let spec sum xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : i 〉
+let spec 
 
-let fun sum xs = case xs of [] -> 0 (y ▹ ys) -> y + (sum@ys) end
+sum xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : i 〉 
+
+end
+
+let fun 
+
+sum : [Nat] -> Nat
+sum xs = case xs of 
+            [] -> 0 
+            y ▹ ys -> y + sum%(ys)
+         end
+
+end
 
 
-begin proof derivationSum 
-    [ especificacion: sum@xs = 〈∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉 ]
+begin proof derivationSum
+    [~ especificacion : sum@xs = 〈∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉 ~]
     induction in xs for 
         sum@xs 
         .=. 

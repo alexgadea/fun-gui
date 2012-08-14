@@ -7,7 +7,7 @@ import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 import Control.Monad.IO.Class
-import Control.Monad.RWS
+import Control.Monad.Trans.RWS
 import Control.Arrow
 
 import Lens.Family
@@ -52,6 +52,7 @@ configLanguage buf = liftIO $ do
 configSourceView :: SourceView -> GuiMonad ()
 configSourceView sv = io $ do
         set sv [ sourceViewShowLineNumbers := True
+               , sourceViewShowRightMargin := True
                , sourceViewIndentWidth := funIdentWidth
                , sourceViewAutoIndent  := autoIdent
                , sourceViewIndentOnTab := setIndentOnTab
@@ -63,7 +64,7 @@ configSourceView sv = io $ do
 configScrolledWindow :: ScrolledWindow -> GuiMonad ()
 configScrolledWindow sw = io $
             set sw [ scrolledWindowHscrollbarPolicy := PolicyAutomatic 
-                   , scrolledWindowVscrollbarPolicy := PolicyAutomatic 
+                   , scrolledWindowVscrollbarPolicy := PolicyAlways
                    ]
 
 -- | Configuración del aspecto del notebook que contiene los archivos abiertos.
@@ -84,9 +85,8 @@ createTextEntry mcode = do
             maybe (return ()) (io . loadCode buf) mcode
             
             sourceview <- io $ sourceViewNewWithBuffer buf
-            
+
             configSourceView sourceview
-            
             io $ boxPackStart hbox sourceview PackGrow 0
             
             return hbox
@@ -100,11 +100,12 @@ createTextEntry mcode = do
 createTextEdit :: Maybe String -> GuiMonad ScrolledWindow
 createTextEdit mcode = do
             swindow <- io $ scrolledWindowNew Nothing Nothing
+            configScrolledWindow swindow
                         
             texte <- createTextEntry mcode
-            io $ containerAdd swindow texte
-            configScrolledWindow swindow
-            
+            io $ scrolledWindowAddWithViewport swindow texte
+            madj <- io $ containerGetFocusVAdjustment swindow
+            io $ maybe (return ()) (containerSetFocusVAdjustment texte) madj
             io $ widgetShowAll swindow
             
             return swindow

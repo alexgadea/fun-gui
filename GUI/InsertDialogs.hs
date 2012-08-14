@@ -3,7 +3,7 @@ module GUI.InsertDialogs where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
-import Control.Monad.RWS
+import Control.Monad.Trans.RWS
 
 import GUI.GState
 import GUI.InfoConsole

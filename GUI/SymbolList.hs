@@ -11,8 +11,8 @@ import Data.Text(unpack)
 
 import Lens.Family
 
-import Control.Monad.State
-import Control.Monad.RWS
+import Control.Monad.Trans.State hiding (get,put)
+import Control.Monad.Trans.RWS
 import qualified Data.Foldable as F
 
 import GUI.GState

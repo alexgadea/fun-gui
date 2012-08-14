@@ -18,7 +18,8 @@ import Text.Parsec.Pos (sourceLine,sourceColumn)
 
 import qualified Data.Foldable as F (mapM_) 
 
-import Control.Monad.RWS
+import Control.Monad.Trans.RWS
+import Control.Monad
 
 import Lens.Family
 

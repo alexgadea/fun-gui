@@ -4,8 +4,7 @@ import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
 import Control.Monad.IO.Class
-import Control.Monad.State
-import Control.Monad.RWS
+import Control.Monad.Trans.RWS
 import Control.Monad.Trans.State (runStateT)
 import Control.Monad.Trans.Cont
 import Control.Arrow
@@ -19,6 +18,7 @@ import Lens.Family
 import Data.Text (pack)
 import Data.Maybe (fromJust,isJust)
 import Data.Reference
+import Data.Monoid (mempty)
 
 import Text.Parsec
 import Text.Parsec.String

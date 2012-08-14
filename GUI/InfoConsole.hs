@@ -10,8 +10,8 @@ import GUI.GState
 import qualified GUI.Console as Console
 
 import Control.Monad.IO.Class
-import Control.Monad.State
-import Control.Monad.RWS
+import Control.Monad.Trans.State hiding (get,put)
+import Control.Monad.Trans.RWS
 import Control.Arrow
 
 import Lens.Family

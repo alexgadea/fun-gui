@@ -10,9 +10,10 @@ import Fun.Eval.Interact(EvResult)
 
 import Graphics.UI.Gtk hiding (get)
 
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.RWS
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State hiding (get,put)
+import Control.Monad.Trans.RWS
 import Data.IORef
 import Data.Reference
 

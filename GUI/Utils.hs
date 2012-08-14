@@ -4,9 +4,10 @@ module GUI.Utils where
 
 import Graphics.UI.Gtk
 
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.RWS
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State
+import Control.Monad.Trans.RWS
 
 io = liftIO
 

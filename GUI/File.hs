@@ -2,7 +2,10 @@ module GUI.File where
 
 import Graphics.UI.Gtk hiding (get)
 
-import Control.Monad.RWS
+import Control.Monad.Trans.RWS
+import Control.Monad.IO.Class
+import Control.Monad
+
 import qualified Data.Foldable as F
 import System.FilePath.Posix
 import Data.Maybe (fromMaybe)

@@ -31,7 +31,7 @@ createNewFileFromLoad mname mcode = getGState >>= \st -> ask >>= \content ->
                 io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
                 io (containerRemove (castToContainer editorPaned) drawArea) >>
                 createEditBook mname mcode >>= \editBook -> 
-                updateGState ((^=) gFunEditBook (Just $ FunEditBook editBook []))
+                updateGState ((<~) gFunEditBook (Just $ FunEditBook editBook []))
             Just editBook -> let ebook = editBook ^. book in
                 createTextEdit mcode >>= \textEdit ->
                 (\name -> 
@@ -55,7 +55,7 @@ closeCurrentFile = getGState >>= \st ->
                              io $ notebookRemovePage ebook cPageNum
                              quantPages <- io $ notebookGetNPages ebook
                              when (quantPages == 0) 
-                                  (updateGState ((^=) gFunEditBook Nothing))
+                                  (updateGState ((<~) gFunEditBook Nothing))
 
 -- | Chequea un archivo cargando, esto implica parsearlo, typechequearlo y
 -- validarlo.
@@ -71,7 +71,7 @@ checkSelectFile = getGState >>= \st ->
                                         printInfoMsg "Módulo Cargado." >>
                                         updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env = updateGState ((^=) gFunEnv env) >> updateInfoPaned env
+        updEnv env = updateGState ((<~) gFunEnv env) >> updateInfoPaned env
         check :: TextView -> GuiMonad (Either ModuleError (Environment,ModName))
         check textV = io $ do
             buf   <- textViewGetBuffer textV

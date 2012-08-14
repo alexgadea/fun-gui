@@ -167,12 +167,12 @@ updateModulesFunEditBook feditBook mName = do
     io $ notebookSetTabLabelText notebook cpSW (unpack mName)
     
     case lookup cPageNum infoMods of
-        Nothing -> updateGState ((^=) gFunEditBook (Just $ 
+        Nothing -> updateGState ((<~) gFunEditBook (Just $ 
                                                       feditBook { _book = notebook
                                                                 , _modules = (cPageNum,mName):infoMods
                                                                 } ))
         Just m -> let infoMods' = delete (cPageNum,m) infoMods in
-                      updateGState ((^=) gFunEditBook (Just $ 
+                      updateGState ((<~) gFunEditBook (Just $ 
                                             feditBook { _book = notebook
                                                       , _modules = (cPageNum,mName):infoMods'
                                                                 } ))

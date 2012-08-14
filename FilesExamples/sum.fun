@@ -22,7 +22,10 @@ begin proof derivationSum
     induction in xs for 
         sum@xs 
         .=. 
-        case xs of [] -> 0 (y ▹ ys) -> y + (sum@ys) end
+        case xs of 
+            [] -> 0 
+            y ▹ ys -> y + (sum@ys) 
+        end
     where
 basic
 [] -> sum@[]

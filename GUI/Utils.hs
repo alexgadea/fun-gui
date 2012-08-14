@@ -10,18 +10,17 @@ import Control.Monad.RWS
 
 io = liftIO
 
-textBufferInsertPrompt buf titer = textBufferInsertLn buf titer . ("fun> "++)
-textBufferInsertLn buf titer = textBufferInsert buf titer . ("\n"++)
+textBufferInsertLn buf str = textBufferGetEndIter buf >>= \titer ->
+                             textBufferInsert buf titer ("\n"++str)
 
         
 -- | Inserta un string al final de un text buffer y scrollea el text view.
 --   Retorna el iter inicial y final del texto ingresado
 putStrAtEnd :: TextBuffer -> TextView -> String -> IO ()
 putStrAtEnd buf tv msg = do
-        titer <- textBufferGetEndIter buf
-        textBufferInsertLn buf titer $ msg
+        textBufferInsertLn buf $ msg
         -- textViewScrollToIter no anda bien, por eso uso scrollToMark
-        textBufferInsertLn buf titer ""
+        textBufferInsertLn buf ""
         titer2 <- textBufferGetEndIter buf
         
         mark <- textBufferCreateMark buf Nothing titer2 False

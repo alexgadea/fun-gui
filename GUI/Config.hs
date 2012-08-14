@@ -35,8 +35,12 @@ backColorCommTV = Color 8000 8000 8000
 textColorCommTV :: Color
 textColorCommTV = Color 60000 60000 60000
 
+textErrColorCommTV :: Color
+textErrColorCommTV = Color 60000 20000 20000
+
 scrollInc :: Double
 scrollInc = 10.0
 
 scrollDec :: Double
 scrollDec = - scrollInc
+

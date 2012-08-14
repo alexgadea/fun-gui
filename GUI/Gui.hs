@@ -9,6 +9,8 @@ import Control.Monad.State
 import Control.Monad.RWS
 import Control.Arrow
 import Control.Applicative
+import Control.Concurrent
+import Control.Concurrent.STM
 
 import Lens.Family
 
@@ -75,20 +77,22 @@ main = do
     infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
 
     panedSetPosition edPaned 400
-    configCommTV commTV
 
     commTBuf <- textViewGetBuffer commTV
 
     infoTBuf <- textViewGetBuffer infoTV
 
     configInfoConsoleTV infoTV infoTBuf
+    
+    commIChan <- atomically newEmptyTMVar
+    commOChan <- atomically newEmptyTMVar
 
     let funFunMenuBarST = FunMenuBar quitButton
     let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
     let funMainPanedST  = FunMainPaned mainPaned
     let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
     let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
-    let funCommConsole  = FunCommConsole commEntry commTBuf commTV
+    let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
     let funInfoConsole  = FunInfoConsole infoTBuf infoTV
     let funEditorPaned  = FunEditorPaned edPaned
 
@@ -164,20 +168,22 @@ makeGState sXml = do
         infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
         
         panedSetPosition edPaned 400
-        configCommTV commTV
         
         commTBuf <- textViewGetBuffer commTV
         
         infoTBuf <- textViewGetBuffer infoTV
         
         configInfoConsoleTV infoTV infoTBuf
+
+        commIChan <- atomically newEmptyTMVar
+        commOChan <- atomically newEmptyTMVar
         
         let funFunMenuBarST = FunMenuBar quitButton
         let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
         let funMainPanedST  = FunMainPaned mainPaned
         let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
-        let funCommConsole  = FunCommConsole commEntry commTBuf commTV
+        let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
         

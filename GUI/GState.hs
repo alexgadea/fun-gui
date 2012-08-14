@@ -6,6 +6,7 @@ import Lens.Family.TH
 
 import Fun.Environment
 import Fun.Module
+import Fun.Eval.Interact(EvResult)
 
 import Graphics.UI.Gtk hiding (get)
 
@@ -14,6 +15,9 @@ import Control.Monad.State
 import Control.Monad.RWS
 import Data.IORef
 import Data.Reference
+
+import Control.Concurrent
+import Control.Concurrent.STM.TMVar
 
 -- | Información sobre los items del menuBar.
 data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
@@ -37,6 +41,8 @@ data FunCommConsole = FunCommConsole {
                             _commEntry :: Entry
                           , _commTBuffer :: TextBuffer
                           , _commTView :: TextView
+                          , _commChan :: TMVar String
+                          , _commRepChan :: TMVar EvResult
                       }
 $(mkLenses ''FunCommConsole)
 

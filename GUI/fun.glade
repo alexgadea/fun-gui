@@ -234,7 +234,6 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Comenzar un nuevo módulo.</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
               </widget>
@@ -263,7 +262,6 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Guardar el módulo seleccionado.</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save</property>
               </widget>
@@ -278,7 +276,6 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Guardar como, para un módulo.</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save-as</property>
               </widget>
@@ -293,7 +290,6 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Cierra el módulo seleccionado.</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-close</property>
               </widget>
@@ -332,7 +328,7 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip" translatable="yes">Aparece/Desaparece la lista de símbolos.</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">symFrameButton</property>
+                <property name="label" translatable="yes">Lista de Símbolos</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-select-font</property>
               </widget>

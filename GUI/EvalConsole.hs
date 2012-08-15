@@ -50,12 +50,10 @@ configCommandConsole= ask >>= \content ->
                         let chan = content ^. (gFunCommConsole . commChan)
                         let repChan = content ^. (gFunCommConsole . commRepChan)
                         configConsoleTV tv buf
-                        forkIO $ runCmd chan repChan
+                        forkIO $ runCmd chan repChan ref
                         do _ <- entry `on` entryActivate $ io $ do                    
                                cmdLine <- entryGetText entry
                                entrySetText entry ""
-                               st <- readRef ref
-                               let env = st ^. gFunEnv
                                atomically $ putTMVar chan cmdLine
                                res <- atomically $ takeTMVar repChan
                                textBufferInsertLn buf (prependPrompt cmdLine ++ "\n")
@@ -71,15 +69,14 @@ putResult :: EvResult -> TextBuffer -> TextView -> IO ()
 putResult (EvErr e) = printErrorMsg (show e) 
 putResult (EvOk r) = printInfoMsg r 
 
-runCmd :: TMVar String -> TMVar EvResult -> IO ()
-runCmd chan ochan = (getCmd >>= \cmdLine ->
-                     case parserCmd cmdLine of 
-                       Left err -> putRes $ errorInParsing ("Error en el comando: " ++ err)
-                       Right cmd -> runStateT (runContT (evaluate cmd []) return) (cfg [],mempty) >>
-                                   return ()) >> 
-                     runCmd chan ochan
-    where putRes str = atomically (putTMVar ochan str)
+runCmd :: TMVar String -> TMVar EvResult -> GStateRef -> IO ()
+runCmd chan ochan r = (getCmd >>= \cmdLine ->
+                       (^. gFunEnv) <$> readRef r >>= \env ->
+                       evaluate (parserCmdCont getCmd putRes (cfg env) cmdLine) env) >>
+                      runCmd chan ochan r
+    where putRes = atomically . putTMVar ochan
           getCmd = atomically $ takeTMVar chan
-          evaluate cmd env = eval getCmd putRes cmd (return (cfg env))
+          evaluate cmd env = runStateT (runContT cmd return) (cfg env,mempty)
           cfg = initConfig
+
 

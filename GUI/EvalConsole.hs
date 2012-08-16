@@ -23,10 +23,8 @@ import Data.Monoid (mempty)
 import Text.Parsec
 import Text.Parsec.String
 
-import GUI.File
 import GUI.GState
 import GUI.EditBook
-import GUI.File
 import GUI.Config
 import GUI.SymbolList
 import GUI.Utils
@@ -39,6 +37,20 @@ import Fun.Eval.Parser
 import Fun.Eval.EvalMonad
 
 prependPrompt = ("fun> "++)
+
+resetEnv :: GuiMonad ()
+resetEnv = ask >>= \content ->
+           get >>= \ref ->
+           io $ do
+             let entry = content ^. (gFunCommConsole . commEntry)
+             let buf = content ^. (gFunCommConsole . commTBuffer)
+             let tv = content ^. (gFunCommConsole . commTView)
+             let chan = content ^. (gFunCommConsole . commChan)
+             let repChan = content ^. (gFunCommConsole . commRepChan)
+             () <- atomically (putTMVar chan "reset")
+             _ <- atomically (takeTMVar repChan)
+             printInfoMsg "Modulo cargado" buf tv 
+
 
 configCommandConsole :: GuiMonad ()
 configCommandConsole= ask >>= \content ->

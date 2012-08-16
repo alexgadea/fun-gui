@@ -6,6 +6,9 @@ import Control.Monad.Trans.RWS
 import Control.Monad.IO.Class
 import Control.Monad
 
+import Control.Concurrent
+import Control.Concurrent.STM
+
 import qualified Data.Foldable as F
 import System.FilePath.Posix
 import Data.Maybe (fromMaybe)
@@ -15,6 +18,7 @@ import GUI.DeclList
 import GUI.EditBook
 import GUI.Utils
 import GUI.InfoConsole
+import GUI.EvalConsole(resetEnv)
 
 import Fun.Environment
 import Fun.Module.Error
@@ -64,7 +68,10 @@ closeCurrentFile = getGState >>= \st ->
 -- validarlo.
 checkSelectFile :: GuiMonad ()
 checkSelectFile = getGState >>= \st ->
-                case st ^. gFunEditBook of
+                  ask >>= \content ->
+                  let chan = content ^. (gFunCommConsole . commChan) in
+                  let repChan = content ^. (gFunCommConsole . commRepChan) in
+                  case st ^. gFunEditBook of
                     Nothing -> return ()
                     Just editBook -> do
                         (_,textV) <- getTextEditFromFunEditBook editBook
@@ -72,6 +79,7 @@ checkSelectFile = getGState >>= \st ->
                         either (\err -> updEnv [] Nothing >> printErrorMsg (show err)) 
                                (\(env,mName) -> updEnv env (Just mName) >> 
                                         printInfoMsg "Módulo Cargado." >>
+                                        resetEnv >>
                                         updateModulesFunEditBook editBook mName) eRes
     where
         updEnv env mname = updateGState ((<~) gFunEnv env) >> updateInfoPaned env mname

@@ -141,6 +141,9 @@ selectText pos tbuf tview = do
     iter1 <- textBufferGetIterAtLine tbuf (initLine-1)
     iter2 <- textBufferGetIterAtLine tbuf (endLine-1)
 
+    -- scroll hasta la posicion donde termina la declaracion.
+    mark <- textBufferCreateMark tbuf Nothing iter1 False
+    textViewScrollToMark tview mark 0 Nothing
     
     textBufferSelectRange tbuf iter1 iter2
                     

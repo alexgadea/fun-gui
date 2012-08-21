@@ -35,6 +35,7 @@
     <style id="specblock" _name="Specification" map-to="def:specblock"/>
     <style id="funblock" _name="Function" map-to="def:funblock"/>
     <style id="valblock" _name="Val" map-to="def:valblock"/>
+    <style id="derivblock" _name="Derivation" map-to="def:derivblock"/>
     <style id="proofblock" _name="Proof" map-to="def:proofblock"/>
     <style id="proofJustify" _name="Proof Justify" map-to="def:justificationProof"/>
     <style id="proofRelation" _name="Proof Relation" map-to="def:relationProof"/>
@@ -48,14 +49,20 @@
           <keyword>in</keyword>
           <keyword>for</keyword>
           <keyword>of</keyword>
+          <keyword>by</keyword>
           <keyword>basic</keyword>
           <keyword>induction</keyword>
           <keyword>with</keyword>
           <keyword>case</keyword>
+          <keyword>cases on</keyword>
           <keyword>-\></keyword>
           <keyword>module</keyword>
           <keyword>import</keyword>
-          <keyword>derived from</keyword>
+          <keyword>if</keyword>
+          <keyword>then</keyword>
+          <keyword>else</keyword>
+          <keyword>verified from</keyword>
+
         </context>
 
         <context id="declarations" style-ref="declaration">
@@ -63,6 +70,7 @@
           <keyword>fun</keyword>
           <keyword>value</keyword>
           <keyword>proof</keyword>
+          <keyword>derivation</keyword>
         </context>
 
         <context id="types" style-ref="type">
@@ -100,6 +108,17 @@
             <context ref="keywords" />
           </include>
         </context>
+
+        <context id="derivblocks" style-ref="derivblock">
+          <start>let derivation</start>
+          <end>end</end>
+          <include>
+            <context ref="types" />
+            <context ref="declarations" />
+            <context ref="keywords" />
+          </include>
+        </context>
+        
         
         <context id="proofblocks" style-ref="proofblock">
           <start>begin proof</start>

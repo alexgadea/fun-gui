@@ -40,10 +40,11 @@
   <color name="yellow"     value="#FFFF00"/>
   <color name="purple"     value="#A020F0"/>
   <color name="greenBack"  value="#A9F5A9"/>
-  <color name="yellowBack" value="#FFFFCC"/>
-  <color name="blueBack"   value="#E6FFFF"/>
+  <color name="yellowBack" value="#F5FA93"/>
+  <color name="blueBack"   value="#C5DEDF"/>
   <color name="pinkBack"   value="#FFE6E5"/>
   <color name="darkgray"   value="#646464"/>
+  <color name="purpleBack"   value="#EECBEA"/>
 
   <!-- Bracket Matching -->
   <style name="bracket-match"               foreground="#white" background="#grey" bold="true"/>
@@ -80,6 +81,7 @@
   <style name="def:funblock"                line-background="blueBack" />
   <style name="def:valblock"                line-background="greenBack"/>
   <style name="def:proofblock"              line-background="pinkBack"/>
+  <style name="def:derivblock"              line-background="purpleBack"/>
   <style name="def:justificationProof"      foreground="darkgray" italic="true"/>
   <style name="def:relationProof"           bold="true"/>
 

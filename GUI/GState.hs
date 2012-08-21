@@ -86,6 +86,7 @@ data GReader = GReader { _gFunWindow    :: Window
                        , _gFunMainPaned :: FunMainPaned
                        , _gFunInfoPaned :: FunInfoPaned
                        , _gFunSymbolList :: FunSymList
+                       , _gFunStatusbar :: Statusbar
                        , _gFunEditorPaned :: FunEditorPaned
                        , _gFunCommConsole :: FunCommConsole
                        , _gFunInfoConsole :: FunInfoConsole

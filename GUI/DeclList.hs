@@ -1,4 +1,4 @@
-{-# Language TypeOperators, RankNTypes, DoAndIfThenElse #-}
+{-# Language DoAndIfThenElse, TemplateHaskell #-}
 -- | Configuración de la lista de declaraciones del panel izquierdo.
 module GUI.DeclList where
 
@@ -20,8 +20,10 @@ import qualified Data.Foldable as F (mapM_)
 
 import Control.Monad.Trans.RWS
 import Control.Monad
+import Control.Applicative
 
 import Lens.Family
+import Lens.Family.TH
 
 import Fun.Decl
 import Fun.Decl.Error
@@ -31,8 +33,18 @@ import Fun.Declarations
 
 import GUI.InfoConsole
 
+data DeclState = DNoState
+               | DUnknown
+               | DChecked
+               | DError
+
 -- | Nombre a mostrar y acción al hace click.
-type DeclItem = (String, DeclPos)
+data DeclItem = DeclItem { _declName :: String
+                         , _declPos :: DeclPos
+                         , _declState :: DeclState
+                         }
+$(mkLenses ''DeclItem)
+
 
 -- | Crea un treeStore para los DeclItem.
 listDecls :: (Decl d, Show d) => [(DeclPos,d)] -> GuiMonad (TreeStore DeclItem)
@@ -40,7 +52,8 @@ listDecls decls = io $ treeStoreNew $ toForest decls
 
 -- | Crea un forest de DeclItem.
 toForest :: (Decl d, Show d) => [(DeclPos,d)] -> Forest DeclItem
-toForest = map (\(pos,d) -> Node (unpack $ getNameDecl d, pos) [])
+toForest = map (\(pos,d) -> Node (newItem d pos) [])
+    where newItem d p = DeclItem (unpack $ getNameDecl d) p DNoState
 
 -- | Configura una lista de posición y declaracion.
 setupDeclList :: (Decl d, Show d) => [(DeclPos,d)] -> TreeView -> Window -> 
@@ -51,20 +64,34 @@ setupDeclList decls tv pwin  = listDecls decls >>= setupDList
         setupDList list = do
             content <- ask
             s <- get
-            io $
-                treeViewGetColumn tv 0 >>=
+            io $               
+                treeViewGetColumn tv 0 >>=                
                 F.mapM_ (treeViewRemoveColumn tv) >>
-                treeViewColumnNew >>= \col ->
+                treeViewColumnNew >>= \colSt ->
+                treeViewColumnNew >>= \colName ->
                 treeViewSetHeadersVisible tv False >>
                 treeViewSetModel tv list >>
                 cellRendererTextNew >>= \renderer ->
-                cellLayoutPackStart col renderer False >>
-                cellLayoutSetAttributes col renderer list 
-                                    (\ind -> [ cellText := fst ind ]) >>
-                treeViewAppendColumn tv col >>
+                cellRendererPixbufNew >>= \stateRend ->
+                cellLayoutPackStart colSt stateRend False >>
+                cellLayoutPackStart colName renderer False >>
+                cellLayoutSetAttributes colName renderer list 
+                                    (\ind -> [ cellText := ind ^. declName ]) >>
+                cellLayoutSetAttributes colSt stateRend list 
+                                    (\ind -> maybe []
+                                            (\img -> [ cellPixbufStockId := img ])
+                                            (declStateImg (ind ^. declState))) >>
+                treeViewAppendColumn tv colSt >>
+                treeViewAppendColumn tv colName >>
                 treeViewGetSelection tv >>= \tree ->
                 onSelectionChanged tree (evalRWST (onSelection list tree) content s >> return ()) >>
                 return list
+
+
+declStateImg DNoState = Nothing
+declStateImg DUnknown = Just stockDialogQuestion
+declStateImg DChecked = Just stockOk
+declStateImg DError = Just stockDialogError
 
 onSelection :: TreeStore DeclItem -> TreeSelection -> GuiMonad ()
 onSelection list tree = do
@@ -73,7 +100,7 @@ onSelection list tree = do
     if null sel then return ()
         else do
             let h = head sel
-            (_,pos) <- io $ treeStoreGetValue list h
+            pos <- io $ (^. declPos) <$> treeStoreGetValue list h 
             
             s <- getGState
             let Just ebook = s ^. gFunEditBook
@@ -122,6 +149,7 @@ updateInfoPaned :: Environment -> Maybe ModName -> GuiMonad ()
 updateInfoPaned env mname = do
             content <- ask 
             let w = content ^. gFunWindow
+            let sb = content ^. gFunStatusbar
             let specsList   = concatMap (specs . decls) env
             let funcsList   = concatMap (functions . decls) env
             let thmsList    = concatMap (theorems . decls) env
@@ -137,17 +165,10 @@ updateInfoPaned env mname = do
             
             let labModule = content ^. (gFunInfoPaned . loadedMod)
             
-            maybe (io (labelSetText labModule "Ninguno")) 
-                  (\name -> io (labelSetText labModule $ unpack name))
-                  mname
+            io $ setLoadedModuleInfo labModule $ maybe Nothing (Just . unpack) mname
             
             return ()
     where
---         updateInfo :: (Decl d, Show d) => [(DeclPos, d)] -> 
---                       ((Expander -> Lens.Family.Getting Expander b') -> 
---                         FunInfoPaned -> 
---                         Lens.Family.Getting Expander FunInfoPaned) -> 
---                       Window -> GReader -> GuiMonad ()
         updateInfo [] getExpndr w content = do
                     let expander = content ^. (gFunInfoPaned . getExpndr)
                     io $ cleanExpander expander

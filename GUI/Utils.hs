@@ -3,11 +3,15 @@
 module GUI.Utils where
 
 import Graphics.UI.Gtk
+import System.Glib.GType
+import System.Glib.GObject
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.RWS
+
+import Control.Applicative
 
 io = liftIO
 
@@ -26,3 +30,33 @@ putStrAtEnd buf tv msg = do
         
         mark <- textBufferCreateMark buf Nothing titer2 False
         textViewScrollToMark tv mark 0 Nothing
+
+-- | Pone un mensaje en una área de estado.
+putMsgSB :: Statusbar -> ContextId -> String -> IO ()
+putMsgSB st cid m = statusbarPush st cid m >> return ()
+                 
+-- | 
+setLoadedModuleInfo :: Label -> Maybe String -> IO ()
+setLoadedModuleInfo label Nothing = labelSetText label "Error al cargar el módulo" >>
+                                    styleInfoError >>= widgetModifyFont label
+setLoadedModuleInfo label (Just mod) = styleInfoModule >>= widgetModifyFont label >>
+                                       labelSetText label mod
+
+
+-- -- | Estilo para títulos en info-boxes
+styleInfoModule ::  IO (Maybe FontDescription)
+styleInfoModule = Just <$> fontBold
+
+styleInfoError :: IO (Maybe FontDescription)
+styleInfoError = Just <$> fontItalic
+
+fontItalic :: IO FontDescription
+fontItalic = fontDescriptionNew >>= \fd -> 
+             fontDescriptionSetStyle fd StyleItalic >>
+             return fd
+
+fontBold :: IO FontDescription
+fontBold = fontDescriptionNew >>= \fd -> 
+           fontDescriptionSetWeight fd WeightBold >>
+           return fd
+

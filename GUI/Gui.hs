@@ -74,7 +74,7 @@ main = do
     edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
     commTV <- xmlGetWidget xml castToTextView "commandTView"
     commEntry <- xmlGetWidget xml castToEntry "commandEntry"
-
+    funStatusbar <- xmlGetWidget xml castToStatusbar "statusBar"
     infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
 
     panedSetPosition edPaned 400
@@ -105,6 +105,7 @@ main = do
                           funMainPanedST
                           funInfoPanedST
                           funSymListST
+                          funStatusbar
                           funEditorPaned
                           funCommConsole
                           funInfoConsole
@@ -133,74 +134,74 @@ configInsertMenuItems specItem funItem valItem thmItem =
     return ()
     -- falta implementar thmItem
 
-makeGState :: String -> IO (GReader,GStateRef) 
-makeGState sXml = do
-        Just xml <- xmlNew sXml
+-- makeGState :: String -> IO (GReader,GStateRef) 
+-- makeGState sXml = do
+--         Just xml <- xmlNew sXml
         
-        newFB <- xmlGetWidget xml castToToolButton "newFileButton"
-        openFB <- xmlGetWidget xml castToToolButton "openFileButton"
-        saveFB <- xmlGetWidget xml castToToolButton "saveFileButton"
-        saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
-        closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
-        checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
-        symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+--         newFB <- xmlGetWidget xml castToToolButton "newFileButton"
+--         openFB <- xmlGetWidget xml castToToolButton "openFileButton"
+--         saveFB <- xmlGetWidget xml castToToolButton "saveFileButton"
+--         saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
+--         closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
+--         checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
+--         symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
         
-        mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
+--         mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
         
-        iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
-        iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
-        iThms  <- xmlGetWidget xml castToExpander "expThms"
-        iVals  <- xmlGetWidget xml castToExpander "expVals"
-        iProps <- xmlGetWidget xml castToExpander "expProps"
-        loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
+--         iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
+--         iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
+--         iThms  <- xmlGetWidget xml castToExpander "expThms"
+--         iVals  <- xmlGetWidget xml castToExpander "expVals"
+--         iProps <- xmlGetWidget xml castToExpander "expProps"
+--         loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
         
-        symFrame   <- xmlGetWidget xml castToFrame "symFrame"
-        goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
-        scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
-        symIV      <- xmlGetWidget xml castToIconView "symbolList"
-        goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
+--         symFrame   <- xmlGetWidget xml castToFrame "symFrame"
+--         goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
+--         scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
+--         symIV      <- xmlGetWidget xml castToIconView "symbolList"
+--         goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
         
-        window <- xmlGetWidget xml castToWindow "mainWindow"
-        quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
+--         window <- xmlGetWidget xml castToWindow "mainWindow"
+--         quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
         
-        edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
-        commTV <- xmlGetWidget xml castToTextView "commandTView"
-        commEntry <- xmlGetWidget xml castToEntry "commandEntry"
+--         edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
+--         commTV <- xmlGetWidget xml castToTextView "commandTView"
+--         commEntry <- xmlGetWidget xml castToEntry "commandEntry"
         
-        infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
+--         infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
         
-        panedSetPosition edPaned 400
+--         panedSetPosition edPaned 400
         
-        commTBuf <- textViewGetBuffer commTV
+--         commTBuf <- textViewGetBuffer commTV
         
-        infoTBuf <- textViewGetBuffer infoTV
+--         infoTBuf <- textViewGetBuffer infoTV
         
-        configInfoConsoleTV infoTV infoTBuf
+--         configInfoConsoleTV infoTV infoTBuf
 
-        commIChan <- atomically newEmptyTMVar
-        commOChan <- atomically newEmptyTMVar
+--         commIChan <- atomically newEmptyTMVar
+--         commOChan <- atomically newEmptyTMVar
         
-        let funFunMenuBarST = FunMenuBar quitButton
-        let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
-        let funMainPanedST  = FunMainPaned mainPaned
-        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
-        let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
-        let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
-        let funInfoConsole  = FunInfoConsole infoTBuf infoTV
-        let funEditorPaned  = FunEditorPaned edPaned
+--         let funFunMenuBarST = FunMenuBar quitButton
+--         let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
+--         let funMainPanedST  = FunMainPaned mainPaned
+--         let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
+--         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+--         let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
+--         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
+--         let funEditorPaned  = FunEditorPaned edPaned
         
         
-        gState <- newRef $ GState [] Nothing
-        let gReader = GReader window 
-                              funFunMenuBarST 
-                              funToolbarST 
-                              funMainPanedST
-                              funInfoPanedST
-                              funSymListST
-                              funEditorPaned
-                              funCommConsole
-                              funInfoConsole
-        return (gReader,gState)
+--         gState <- newRef $ GState [] Nothing
+--         let gReader = GReader window 
+--                               funFunMenuBarST 
+--                               funToolbarST 
+--                               funMainPanedST
+--                               funInfoPanedST
+--                               funSymListST
+--                               funEditorPaned
+--                               funCommConsole
+--                               funInfoConsole
+--         return (gReader,gState)
 
 configMenuBarButtons :: GuiMonad ()
 configMenuBarButtons = ask >>= \content -> get >>= \st ->

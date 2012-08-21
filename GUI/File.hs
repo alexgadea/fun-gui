@@ -62,7 +62,7 @@ closeCurrentFile = getGState >>= \st ->
                              io $ notebookRemovePage ebook cPageNum
                              quantPages <- io $ notebookGetNPages ebook
                              when (quantPages == 0) 
-                                  (updateGState ((<~) gFunEditBook Nothing))
+                                  (updateGState (gFunEditBook <~ Nothing))
 
 -- | Chequea un archivo cargando, esto implica parsearlo, typechequearlo y
 -- validarlo.
@@ -82,7 +82,7 @@ checkSelectFile = getGState >>= \st ->
                                         resetEnv >>
                                         updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env mname = updateGState ((<~) gFunEnv env) >> updateInfoPaned env mname
+        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname
         check :: TextView -> GuiMonad (Either ModuleError (Environment,ModName))
         check textV = io $ do
             buf   <- textViewGetBuffer textV

@@ -116,6 +116,10 @@
             <context ref="types" />
             <context ref="declarations" />
             <context ref="keywords" />
+            <context id="justificationDeriv" style-ref="proofJustify">
+              <start>\{</start>
+              <end>\}</end>
+            </context>
           </include>
         </context>
         

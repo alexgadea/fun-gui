@@ -44,7 +44,9 @@
   <color name="blueBack"   value="#C5DEDF"/>
   <color name="pinkBack"   value="#FFE6E5"/>
   <color name="darkgray"   value="#646464"/>
+  <color name="softgray"   value="#979797"/>
   <color name="purpleBack"   value="#EECBEA"/>
+  <color name="orange"     value="#F7D68D" />
 
   <!-- Bracket Matching -->
   <style name="bracket-match"               foreground="#white" background="#grey" bold="true"/>
@@ -54,7 +56,7 @@
   <style name="search-match"                background="yellow"/>  
   
   <!-- Comments -->
-  <style name="def:comment"                 foreground="blue"/>
+  <style name="def:comment"                 foreground="softgray"/>
   <style name="def:shebang"                 foreground="blue" bold="true"/>
   <style name="def:doc-comment-element"     italic="true"/>
 
@@ -84,6 +86,7 @@
   <style name="def:derivblock"              line-background="purpleBack"/>
   <style name="def:justificationProof"      foreground="darkgray" italic="true"/>
   <style name="def:relationProof"           bold="true"/>
+  <style name="def:propblock"               line-background="orange" />
 
   <!-- Language specific styles -->
   <style name="diff:added-line"             foreground="#008B8B"/>

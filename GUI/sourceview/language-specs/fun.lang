@@ -39,6 +39,8 @@
     <style id="proofblock" _name="Proof" map-to="def:proofblock"/>
     <style id="proofJustify" _name="Proof Justify" map-to="def:justificationProof"/>
     <style id="proofRelation" _name="Proof Relation" map-to="def:relationProof"/>
+    <style id="propblock" _name="Proposition"   map-to="def:propblock"/>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
   </styles>
 
   <definitions>
@@ -125,7 +127,7 @@
         
         
         <context id="proofblocks" style-ref="proofblock">
-          <start>begin proof</start>
+          <start>let thm</start>
           <end>end proof</end>
           <include>
             <context ref="types" />
@@ -141,6 +143,22 @@
               <match> = | ≡ </match>
             </context>
           </include>
+        </context>
+        
+        <context id="propblocks" style-ref="propblock">
+          <start>let prop</start>
+          <end>end</end>
+          <include>
+            <context ref="types" />
+            <context ref="declarations" />
+            <context ref="keywords" />
+          </include>
+        </context>
+        
+        
+        <context id="block-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
+            <start>\{-</start>
+            <end>-\}</end>
         </context>
 
       </include>

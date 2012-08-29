@@ -10,6 +10,8 @@ let fun sum xs = case xs of
                         end
 verified from sumVerification
 
+let prop truchada = sum@[] = 0 end
+
 {- El siguiente teorema es la verificación de la función sum -}
 let thm sumVerification = sum@xs = case xs of
                                                                                         [] -> 0
@@ -23,13 +25,7 @@ begin proof  [~ especificacion : sum@xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i
             where
 basic 
 [] ->     sum@[]
-              = { especificacion }
-              〈 ∑ i : 0 ≤ i ∧ i < #[] : [].i 〉
-              = { Longitud de la lista vacía }
-              〈 ∑ i : 0 ≤ i ∧ i < 0 : [].i 〉
-              = { Intervalo Vacío }
-             〈 ∑ i : False : [].i 〉
-              = { Rango Vacío Sumatoria }
+              = { prop truchada }
               0
 
 induction y ▹ ys with hypind -> sum@(y ▹ ys)

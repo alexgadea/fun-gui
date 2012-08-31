@@ -93,7 +93,6 @@ makeGState xml = do
         goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
         
         window <- xmlGetWidget xml castToWindow "mainWindow"
-        quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
         
         edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
         commTV <- xmlGetWidget xml castToTextView "commandTView"
@@ -155,29 +154,35 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
         onToolButtonClicked symFButton    (eval configSymFrameButton content st)
         
         return ()
-    where
-        eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
-        eval action content str = evalRWST action content str >> return ()
 
 -- | Configura los botones del menude archivo.
 configToolBarButtons :: GladeXML -> GuiMonad ()
-configToolBarButtons xml = ask >>= \content -> 
-        io $ do
-        let window = content ^. gFunWindow
-        quitB  <- xmlGetWidget xml castToMenuItem "quitButton"
-        
-        onActivateLeaf quitB $ widgetDestroy window
-        return ()
+configToolBarButtons xml = ask >>= \content -> get >>= \st ->
+            io $ do
+            let window = content ^. gFunWindow
+            newB  <- xmlGetWidget xml castToMenuItem "newButton"
+            saveB  <- xmlGetWidget xml castToMenuItem "saveButton"
+            closeB  <- xmlGetWidget xml castToMenuItem "closeButton"
+            quitB  <- xmlGetWidget xml castToMenuItem "quitButton"
+            
+            onActivateLeaf newB   $ eval createNewFile    content st
+            onActivateLeaf saveB  $ eval saveFile         content st
+            onActivateLeaf closeB $ eval closeCurrentFile content st
+            onActivateLeaf quitB  $ widgetDestroy window
+            return ()
 
 -- | Configura la ventana principal.
 configWindow :: GuiMonad ()
 configWindow = ask >>= \content -> 
-        io $ do
-        let window = content ^. gFunWindow
-        windowMaximize window
-        widgetShowAll window
-        onDestroy window mainQuit
-        return ()
+            io $ do
+            let window = content ^. gFunWindow
+            windowMaximize window
+            widgetShowAll window
+            onDestroy window mainQuit
+            return ()
+            
+eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
+eval action content str = evalRWST action content str >> return ()
 
 -- | Mensaje de error en caso de no encontrar el archivo glade correspondiente.
 msgErrGladeNotFound :: String

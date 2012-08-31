@@ -6,6 +6,7 @@ import Lens.Family
 import Lens.Family.TH
 
 import Fun.Environment
+import Fun.Parser
 import Fun.Module
 import Fun.Eval.Interact(EvResult)
 
@@ -33,19 +34,17 @@ $(mkLenses ''FunToolbar)
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
 
-data FunCommConsole = FunCommConsole {
-                            _commEntry :: Entry
-                          , _commTBuffer :: TextBuffer
-                          , _commTView :: TextView
-                          , _commChan :: TMVar String
-                          , _commRepChan :: TMVar EvResult
-                      }
+data FunCommConsole = FunCommConsole { _commEntry :: Entry
+                                     , _commTBuffer :: TextBuffer
+                                     , _commTView :: TextView
+                                     , _commChan :: TMVar String
+                                     , _commRepChan :: TMVar EvResult
+                                     }
 $(mkLenses ''FunCommConsole)
 
-data FunInfoConsole = FunInfoConsole {
-                            _infoConTBuffer :: TextBuffer
-                          , _infoConTView :: TextView
-                      }
+data FunInfoConsole = FunInfoConsole { _infoConTBuffer :: TextBuffer
+                                     , _infoConTView :: TextView
+                                     }
 $(mkLenses ''FunInfoConsole)
 
 data FunEditorPaned = FunEditorPaned { _epaned :: VPaned }
@@ -61,7 +60,9 @@ data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
 $(mkLenses ''FunInfoPaned)
 
 -- | Información sobre el panel derecho de la interfaz.
-data FunEditBook = FunEditBook { _book :: Notebook }
+data FunEditBook = FunEditBook { _book        :: Notebook 
+                               , _tabFileList :: [Maybe TextFilePath]
+                               }
 $(mkLenses ''FunEditBook)
 
 -- | Información sobre la lista de símbolos.

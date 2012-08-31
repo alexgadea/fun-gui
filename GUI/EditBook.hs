@@ -21,10 +21,11 @@ import GUI.Config
 import GUI.Utils
 
 import Fun.Module (ModName)
+import Fun.Parser
 
 -- Configura el lenguaje para el sourceView.
 configLanguage :: SourceBuffer -> GuiMonad ()
-configLanguage buf = liftIO $ do
+configLanguage buf = io $ do
     -- Language Spec
     slm <- sourceLanguageManagerNew
     path <- sourceLanguageManagerGetSearchPath slm
@@ -112,16 +113,27 @@ createTextEdit mcode = do
             
             return swindow
 
+getTextViewFilePath :: Int -> GuiMonad (Maybe TextFilePath)
+getTextViewFilePath i = do
+                st <- getGState
+                let feditBook = st ^. gFunEditBook 
+                maybe (return Nothing) (return . takeFilePath) feditBook
+    where
+        takeFilePath :: FunEditBook -> Maybe TextFilePath
+        takeFilePath feb = (feb ^. tabFileList) !! i
+
 -- | Dado un EditBook, obtiene el campo de texto que esta seleccionado en
 -- ese momento y su nombre.
-getTextEditFromFunEditBook :: FunEditBook -> GuiMonad (String,TextView)
+getTextEditFromFunEditBook :: FunEditBook -> 
+                              GuiMonad (Maybe TextFilePath, String,TextView)
 getTextEditFromFunEditBook feditBook = do
             let notebook = feditBook ^. book
             cPageNum       <- io $ notebookGetCurrentPage notebook
+            mfp            <- getTextViewFilePath cPageNum
             Just cpSW      <- io $ notebookGetNthPage notebook cPageNum
             Just textViewN <- io $ notebookGetTabLabelText notebook cpSW
-            [tv]    <- io $  containerGetChildren (castToContainer cpSW)
-            return (textViewN,castToTextView tv)
+            [tv]           <- io $ containerGetChildren (castToContainer cpSW)
+            return (mfp,textViewN,castToTextView tv)
             
 -- | similar a la anterior pero en la mónada IO. Le debemos pasar el notebook.
 getTextEditFromNotebook :: Notebook -> IO (String,TextView)

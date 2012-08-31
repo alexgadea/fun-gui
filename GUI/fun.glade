@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.16 -->
   <!-- interface-naming-policy project-wide -->
@@ -7,7 +7,6 @@
     <child>
       <widget class="GtkVBox" id="mainBox">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
@@ -20,11 +19,12 @@
                   <widget class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkImageMenuItem" id="imagemenuitem1">
+                      <widget class="GtkImageMenuItem" id="newButton">
                         <property name="label">gtk-new</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <accelerator key="t" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
                     <child>
@@ -36,11 +36,12 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="imagemenuitem3">
+                      <widget class="GtkImageMenuItem" id="saveButton">
                         <property name="label">gtk-save</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
                     <child>
@@ -57,11 +58,21 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkImageMenuItem" id="closeButton">
+                        <property name="label">gtk-close</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <accelerator key="w" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="quitButton">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
                   </widget>
@@ -89,7 +100,7 @@
                     <property name="visible">True</property>
                     <child>
                       <widget class="GtkImageMenuItem" id="insertSpecItem">
-                        <property name="label">Especificaci&#xF3;n</property>
+                        <property name="label">Especificación</property>
                         <property name="visible">True</property>
                         <property name="use_stock">False</property>
                         <child internal-child="image">
@@ -102,7 +113,7 @@
                     </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="insertFunItem">
-                        <property name="label">Funci&#xF3;n</property>
+                        <property name="label">Función</property>
                         <property name="visible">True</property>
                         <property name="use_stock">False</property>
                         <child internal-child="image">
@@ -183,9 +194,10 @@
             <child>
               <widget class="GtkToolButton" id="newFileButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Comenzar un nuevo m&#xF3;dulo.</property>
+                <property name="tooltip" translatable="yes">Comenzar un nuevo módulo.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
+                <accelerator key="t" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -195,7 +207,7 @@
             <child>
               <widget class="GtkToolButton" id="openFileButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Cargar un m&#xF3;dulo desde archivo.</property>
+                <property name="tooltip" translatable="yes">Cargar un módulo desde archivo.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-open</property>
               </widget>
@@ -207,9 +219,10 @@
             <child>
               <widget class="GtkToolButton" id="saveFileButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Guardar el m&#xF3;dulo seleccionado.</property>
+                <property name="tooltip" translatable="yes">Guardar el módulo seleccionado.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save</property>
+                <accelerator key="s" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -219,7 +232,7 @@
             <child>
               <widget class="GtkToolButton" id="saveFileAtButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Guardar como, para un m&#xF3;dulo.</property>
+                <property name="tooltip" translatable="yes">Guardar como, para un módulo.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save-as</property>
               </widget>
@@ -231,9 +244,10 @@
             <child>
               <widget class="GtkToolButton" id="closeFileButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Cierra el m&#xF3;dulo seleccionado.</property>
+                <property name="tooltip" translatable="yes">Cierra el módulo seleccionado.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-close</property>
+                <accelerator key="w" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -243,7 +257,7 @@
             <child>
               <widget class="GtkToolButton" id="checkModuleButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Chequea el m&#xF3;dulo seleccionado.</property>
+                <property name="tooltip" translatable="yes">Chequea el módulo seleccionado.</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-convert</property>
               </widget>
@@ -264,8 +278,8 @@
             <child>
               <widget class="GtkToggleToolButton" id="symFrameButton">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="yes">Aparece/Desaparece la lista de s&#xED;mbolos.</property>
-                <property name="label" translatable="yes">Lista de S&#xED;mbolos</property>
+                <property name="tooltip" translatable="yes">Aparece/Desaparece la lista de símbolos.</property>
+                <property name="label" translatable="yes">Lista de Símbolos</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-select-font</property>
               </widget>
@@ -304,7 +318,6 @@
                       <widget class="GtkVPaned" id="infoPaned">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkExpander" id="expSpecs">
                             <property name="visible">True</property>
@@ -331,7 +344,6 @@
                           <widget class="GtkVPaned" id="vpaned1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkExpander" id="expFuncs">
                                 <property name="visible">True</property>
@@ -358,7 +370,6 @@
                               <widget class="GtkVPaned" id="vpaned2">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkExpander" id="expThms">
                                     <property name="visible">True</property>
@@ -385,7 +396,6 @@
                                   <widget class="GtkVPaned" id="vpaned3">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="orientation">vertical</property>
                                     <child>
                                       <widget class="GtkExpander" id="expVals">
                                         <property name="visible">True</property>
@@ -456,7 +466,6 @@
                     <child>
                       <widget class="GtkVSeparator" id="vseparator1">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -474,7 +483,6 @@
                   <widget class="GtkVPaned" id="editorPaned">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkDrawingArea" id="drawingarea1">
                         <property name="visible">True</property>
@@ -508,7 +516,7 @@
                         <child>
                           <widget class="GtkLabel" id="label7">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Informaci&#xF3;n</property>
+                            <property name="label" translatable="yes">Información</property>
                           </widget>
                           <packing>
                             <property name="tab_fill">False</property>
@@ -541,7 +549,7 @@
                               <widget class="GtkEntry" id="commandEntry">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x2022;</property>
+                                <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="primary_icon_sensitive">True</property>
                                 <property name="secondary_icon_sensitive">True</property>
@@ -559,7 +567,7 @@
                         <child>
                           <widget class="GtkLabel" id="label8">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Evaluaci&#xF3;n</property>
+                            <property name="label" translatable="yes">Evaluación</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -649,7 +657,7 @@
             <child>
               <widget class="GtkLabel" id="label6">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">&lt;b&gt;S&#xED;mbolos&lt;/b&gt;</property>
+                <property name="label" translatable="yes">&lt;b&gt;Símbolos&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </widget>
               <packing>
@@ -671,7 +679,7 @@
               <widget class="GtkLabel" id="labelLoadedModule">
                 <property name="visible">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip" translatable="yes">Informaci&#xF3;n sobre el m&#xF3;dulo actual.</property>
+                <property name="tooltip" translatable="yes">Información sobre el módulo actual.</property>
                 <property name="single_line_mode">True</property>
                 <property name="max_width_chars">40</property>
               </widget>
@@ -682,7 +690,6 @@
             <child>
               <widget class="GtkVSeparator" id="vseparator2">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -693,7 +700,7 @@
               <widget class="GtkLabel" id="labelEvalInfo">
                 <property name="visible">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip" translatable="yes">Informaci&#xF3;n sobre la consola de evaluaci&#xF3;n.</property>
+                <property name="tooltip" translatable="yes">Información sobre la consola de evaluación.</property>
               </widget>
               <packing>
                 <property name="position">2</property>

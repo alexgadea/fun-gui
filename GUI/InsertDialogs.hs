@@ -79,7 +79,7 @@ runDialog decDlg =
     getGState >>= \st -> ask >>= \content ->
     case st ^. gFunEditBook of
         Nothing -> printErrorMsg "No hay ningún archivo abierto"
-        Just fbook -> getTextEditFromFunEditBook fbook >>= \(_,tv) ->
+        Just fbook -> getTextEditFromFunEditBook fbook >>= \(_,_,tv) ->
                       io $ do
                           let dlg = declDialog decDlg
                           setTitleDlg

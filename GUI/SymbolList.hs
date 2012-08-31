@@ -13,6 +13,8 @@ import Lens.Family
 
 import Control.Monad.Trans.State hiding (get,put)
 import Control.Monad.Trans.RWS
+import Control.Applicative ((<$>))
+import Control.Monad (when)
 import qualified Data.Foldable as F
 
 import GUI.GState
@@ -23,13 +25,15 @@ import GUI.Utils
 type SymItem = String
 
 listSymbols :: IO (ListStore SymItem)
-listSymbols = listStoreNew $ map (\item -> "〈"++ addItem item ++ ":" ++ ":" ++ "〉") quantifiersList
-                          ++ map (addItem) operatorsList
-                          ++ map (addItem) constantsList
+listSymbols = listStoreNew $ map addEncloseItem quantifiersList
+                          ++ map addItem operatorsList
+                          ++ map addItem constantsList
                           
 
     where addItem :: Syntactic s =>  s -> SymItem
           addItem syn = unpack $ tRepr syn
+          addEncloseItem :: Syntactic s =>  s -> SymItem
+          addEncloseItem q = "〈"++ addItem q ++ ":" ++ ":" ++ "〉"
 
 configSymFrameButton :: GuiMonad ()
 configSymFrameButton = do
@@ -52,7 +56,7 @@ configSymbolList = do
                 let goRB    = content ^. (gFunSymbolList . gGoRightBox)
                 let scrollW = content ^. (gFunSymbolList . gScrollW)
                 
-                list <- io $ listSymbols
+                list <- io listSymbols
                 io $ setupScrolledWindowSymbolList scrollW goLB goRB s
                 io $ setupSymbolList iv list
                 eventsSymbolList iv list
@@ -95,14 +99,13 @@ setupScrolledWindowSymbolList sw goLb goRb s = do
 
 setupScrollWithArrow :: Adjustment -> Button -> Double -> GStateRef -> IO (ConnectId Button)
 setupScrollWithArrow adj go inc s = 
-                        go `on` buttonPressEvent $ tryEvent $ 
-                        flip evalStateT s $ io $ do
-                                val <- io $ adjustmentGetValue adj
-                                upper <- adjustmentGetUpper adj
-                                pageSize <- adjustmentGetPageSize adj
-                                if upper - pageSize > val + inc 
-                                then adjustmentSetValue adj (val + inc)
-                                else return ()
+                go `on` buttonPressEvent $ tryEvent $ 
+                flip evalStateT s $ io $ do
+                        val <- io $ adjustmentGetValue adj
+                        upper <- adjustmentGetUpper adj
+                        pageSize <- adjustmentGetPageSize adj
+                        when (upper - pageSize > val + inc) $ 
+                             adjustmentSetValue adj (val + inc)
 
 makeScrollArrow :: HBox -> StockId -> IO Button
 makeScrollArrow box si = do
@@ -145,8 +148,7 @@ oneSelection list path = do
 getElem :: ListStore a -> TreePath -> IO (Maybe a)
 getElem l p = treeModelGetIter l p >>= \i ->
               flip (maybe (return Nothing)) i $ \it -> 
-                        return (listStoreIterToIndex it) >>= \idx ->
-                        listStoreGetSize l >>= \len -> 
-                        if (idx < len) 
-                        then listStoreGetValue l idx >>= return . Just
-                        else return Nothing
+                        (\idx -> listStoreGetSize l >>= \len -> 
+                        if idx < len
+                            then Just <$> listStoreGetValue l idx
+                            else return Nothing) (listStoreIterToIndex it)

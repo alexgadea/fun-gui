@@ -97,8 +97,7 @@ onSelection :: TreeStore DeclItem -> TreeSelection -> GuiMonad ()
 onSelection list tree = do
 
     sel <- io $ treeSelectionGetSelectedRows tree
-    if null sel then return ()
-        else do
+    unless (null sel) $ do
             let h = head sel
             pos <- io $ (^. declPos) <$> treeStoreGetValue list h 
             
@@ -110,14 +109,13 @@ onSelection list tree = do
             io $ containerForeach notebook
                     (\child -> notebookGetTabLabelText notebook child >>=
                     \(Just labtext) ->
-                    if labtext == unpack mName
-                        then selectPage notebook child >>
+                    (when (labtext == unpack mName) $
+                                selectPage notebook child >>
                                 getTextEditFromNotebook notebook >>= 
                                 \(_,tview) -> textViewGetBuffer tview >>= 
                                 \tbuffer -> selectText pos tbuffer tview >>
                                 treeSelectionUnselectAll tree >>
-                                return ()  
-                        else return () )
+                                return ()))
 
                 
     where showModNotLoaded mName = 

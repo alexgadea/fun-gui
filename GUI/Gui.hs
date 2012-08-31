@@ -1,4 +1,4 @@
--- | Interfaz gráfica de Equ.
+-- | Interfaz gráfica de Fun.
 module Main where
 
 import Graphics.UI.Gtk hiding (get)
@@ -15,7 +15,7 @@ import Control.Concurrent.STM
 import Lens.Family
 
 import Data.Text (pack)
-import Data.Maybe (fromJust,isJust)
+import Data.Maybe (fromJust,isJust,fromMaybe)
 import Data.Reference
 
 import qualified Equ.Parser as EquParser
@@ -23,7 +23,6 @@ import qualified Equ.Parser as EquParser
 import GUI.File
 import GUI.GState
 import GUI.EditBook
-import GUI.File
 import GUI.Config
 import GUI.SymbolList
 import GUI.EvalConsole
@@ -35,184 +34,117 @@ main :: IO ()
 main = do 
     initGUI
     
---     (greader,gstate) <- makeGState "GUI/fun.glade"
+    xml <- fromMaybe (error msgErrGladeNotFound) <$> xmlNew "GUI/fun.glade"
     
-    Just xml <- xmlNew "GUI/fun.glade"
-
-    newFB <- xmlGetWidget xml castToToolButton "newFileButton"
-    openFB <- xmlGetWidget xml castToToolButton "openFileButton"
-    saveFB <- xmlGetWidget xml castToToolButton "saveFileButton"
-    saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
-    closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
-    checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
-    symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
-
-    -- items
-    insertSpecItem <- xmlGetWidget xml castToImageMenuItem "insertSpecItem"
-    insertFunItem <- xmlGetWidget xml castToImageMenuItem "insertFunItem"
-    insertValItem <- xmlGetWidget xml castToImageMenuItem "insertValItem"
-    insertThmItem <- xmlGetWidget xml castToImageMenuItem "insertThmItem"
-
-    mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
-
-    iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
-    iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
-    iThms  <- xmlGetWidget xml castToExpander "expThms"
-    iVals  <- xmlGetWidget xml castToExpander "expVals"
-    iProps <- xmlGetWidget xml castToExpander "expProps"
-    loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
-
-    symFrame   <- xmlGetWidget xml castToFrame "symFrame"
-    goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
-    scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
-    symIV      <- xmlGetWidget xml castToIconView "symbolList"
-    goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
-
-    window <- xmlGetWidget xml castToWindow "mainWindow"
-    quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
-
-    edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
-    commTV <- xmlGetWidget xml castToTextView "commandTView"
-    commEntry <- xmlGetWidget xml castToEntry "commandEntry"
-    funStatusbar <- xmlGetWidget xml castToStatusbar "statusBar"
-    infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
-
-    panedSetPosition edPaned 400
-
-    commTBuf <- textViewGetBuffer commTV
-
-    infoTBuf <- textViewGetBuffer infoTV
-
-    configInfoConsoleTV infoTV infoTBuf
-    
-    commIChan <- atomically newEmptyTMVar
-    commOChan <- atomically newEmptyTMVar
-
-    let funFunMenuBarST = FunMenuBar quitButton
-    let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
-    let funMainPanedST  = FunMainPaned mainPaned
-    let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
-    let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
-    let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
-    let funInfoConsole  = FunInfoConsole infoTBuf infoTV
-    let funEditorPaned  = FunEditorPaned edPaned
-
-    gState <- newRef $ GState [] Nothing
-    
-    let gReader = GReader window 
-                          funFunMenuBarST 
-                          funToolbarST 
-                          funMainPanedST
-                          funInfoPanedST
-                          funSymListST
-                          funStatusbar
-                          funEditorPaned
-                          funCommConsole
-                          funInfoConsole
+    (gReader,gState) <- makeGState xml
 
     runRWST (do configWindow
-                configInsertMenuItems insertSpecItem insertFunItem insertValItem insertThmItem
-                configToolBarButtons
-                configMenuBarButtons
+                configMenuBarButtons  xml
+                configInsertMenuItems xml 
+                configToolBarButtons  xml
                 configCommandConsole
                 configSymbolList
             ) gReader gState
 
     mainGUI
 
+-- | Configura los botones de insert de declaraciones del menu.
+configInsertMenuItems :: GladeXML -> GuiMonad ()
+configInsertMenuItems xml = ask >>= \content -> get >>= \st -> 
+            io $ do
+            specItem <- xmlGetWidget xml castToImageMenuItem "insertSpecItem"
+            funItem  <- xmlGetWidget xml castToImageMenuItem "insertFunItem"
+            valItem  <- xmlGetWidget xml castToImageMenuItem "insertValItem"
+            -- falta implementar thmItem
+            thmItem  <- xmlGetWidget xml castToImageMenuItem "insertThmItem"
+            
+            onActivateLeaf specItem (createRun IDialogs.Spec content st)
+            onActivateLeaf funItem  (createRun IDialogs.Fun  content st)
+            onActivateLeaf valItem  (createRun IDialogs.Val  content st)
+            
+            return ()
+    where
+        createRunDialog :: IDialogs.DeclType -> GuiMonad ()
+        createRunDialog dtype = IDialogs.createDeclDialog dtype >>= IDialogs.runDialog
+        createRun :: IDialogs.DeclType -> GReader -> GStateRef -> IO ()
+        createRun dtype content str = do
+                                evalRWST (createRunDialog dtype) content str
+                                return ()
 
-configInsertMenuItems :: ImageMenuItem -> ImageMenuItem -> 
-                         ImageMenuItem -> ImageMenuItem -> GuiMonad ()
-configInsertMenuItems specItem funItem valItem thmItem =
-    ask >>= \content -> get >>= \st -> io $ 
-    onActivateLeaf specItem (evalRWST (IDialogs.createDeclDialog IDialogs.Spec >>=
-                                       IDialogs.runDialog) content st >> return ()) >>
-    onActivateLeaf funItem (evalRWST (IDialogs.createDeclDialog IDialogs.Fun >>=
-                                       IDialogs.runDialog) content st >> return ()) >>
-    onActivateLeaf valItem (evalRWST (IDialogs.createDeclDialog IDialogs.Val >>=
-                                       IDialogs.runDialog) content st >> return ()) >>
-    return ()
-    -- falta implementar thmItem
+-- | Genera el estado inicial de la mónada.
+makeGState :: GladeXML -> IO (GReader,GStateRef) 
+makeGState xml = do
+        
+        symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+        
+        mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
+        
+        iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
+        iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
+        iThms  <- xmlGetWidget xml castToExpander "expThms"
+        iVals  <- xmlGetWidget xml castToExpander "expVals"
+        iProps <- xmlGetWidget xml castToExpander "expProps"
+        loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
+        
+        symFrame   <- xmlGetWidget xml castToFrame "symFrame"
+        goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
+        scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
+        symIV      <- xmlGetWidget xml castToIconView "symbolList"
+        goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
+        
+        window <- xmlGetWidget xml castToWindow "mainWindow"
+        quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
+        
+        edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
+        commTV <- xmlGetWidget xml castToTextView "commandTView"
+        commEntry <- xmlGetWidget xml castToEntry "commandEntry"
+        funStatusbar <- xmlGetWidget xml castToStatusbar "statusBar"
+        infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
+        
+        panedSetPosition edPaned 400
+        
+        commTBuf <- textViewGetBuffer commTV
+        
+        infoTBuf <- textViewGetBuffer infoTV
+        
+        configInfoConsoleTV infoTV infoTBuf
 
--- makeGState :: String -> IO (GReader,GStateRef) 
--- makeGState sXml = do
---         Just xml <- xmlNew sXml
+        commIChan <- atomically newEmptyTMVar
+        commOChan <- atomically newEmptyTMVar
         
---         newFB <- xmlGetWidget xml castToToolButton "newFileButton"
---         openFB <- xmlGetWidget xml castToToolButton "openFileButton"
---         saveFB <- xmlGetWidget xml castToToolButton "saveFileButton"
---         saveAtFB <- xmlGetWidget xml castToToolButton "saveFileAtButton"
---         closeFB <- xmlGetWidget xml castToToolButton "closeFileButton"
---         checkMB <- xmlGetWidget xml castToToolButton "checkModuleButton"
---         symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+        let funToolbarST    = FunToolbar symFrameB
+        let funMainPanedST  = FunMainPaned mainPaned
+        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
+        let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+        let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
+        let funInfoConsole  = FunInfoConsole infoTBuf infoTV
+        let funEditorPaned  = FunEditorPaned edPaned
         
---         mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
         
---         iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
---         iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
---         iThms  <- xmlGetWidget xml castToExpander "expThms"
---         iVals  <- xmlGetWidget xml castToExpander "expVals"
---         iProps <- xmlGetWidget xml castToExpander "expProps"
---         loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
-        
---         symFrame   <- xmlGetWidget xml castToFrame "symFrame"
---         goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
---         scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
---         symIV      <- xmlGetWidget xml castToIconView "symbolList"
---         goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
-        
---         window <- xmlGetWidget xml castToWindow "mainWindow"
---         quitButton <- xmlGetWidget xml castToMenuItem "quitButton"
-        
---         edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
---         commTV <- xmlGetWidget xml castToTextView "commandTView"
---         commEntry <- xmlGetWidget xml castToEntry "commandEntry"
-        
---         infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
-        
---         panedSetPosition edPaned 400
-        
---         commTBuf <- textViewGetBuffer commTV
-        
---         infoTBuf <- textViewGetBuffer infoTV
-        
---         configInfoConsoleTV infoTV infoTBuf
+        gState <- newRef $ GState [] Nothing
+        let gReader = GReader window 
+                              funToolbarST
+                              funMainPanedST
+                              funInfoPanedST
+                              funSymListST
+                              funStatusbar 
+                              funEditorPaned
+                              funCommConsole
+                              funInfoConsole
+        return (gReader,gState)
 
---         commIChan <- atomically newEmptyTMVar
---         commOChan <- atomically newEmptyTMVar
+-- | Configura los botones de la barra, tales como abrir, cerrar, etc...
+configMenuBarButtons :: GladeXML -> GuiMonad ()
+configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
+        io $ do
         
---         let funFunMenuBarST = FunMenuBar quitButton
---         let funToolbarST    = FunToolbar newFB openFB saveFB saveAtFB closeFB checkMB symFrameB
---         let funMainPanedST  = FunMainPaned mainPaned
---         let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
---         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
---         let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
---         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
---         let funEditorPaned  = FunEditorPaned edPaned
-        
-        
---         gState <- newRef $ GState [] Nothing
---         let gReader = GReader window 
---                               funFunMenuBarST 
---                               funToolbarST 
---                               funMainPanedST
---                               funInfoPanedST
---                               funSymListST
---                               funEditorPaned
---                               funCommConsole
---                               funInfoConsole
---         return (gReader,gState)
-
-configMenuBarButtons :: GuiMonad ()
-configMenuBarButtons = ask >>= \content -> get >>= \st ->
-        liftIO $ do
-        let newFButton    = content ^. (gFunToolbar . newFB)
-        let openFButton   = content ^. (gFunToolbar . openFB)
-        let saveFButton   = content ^. (gFunToolbar . saveFB)
-        let saveAtFButton = content ^. (gFunToolbar . saveAtFB)
-        let closeFButton  = content ^. (gFunToolbar . closeFB)
-        let checkMButton  = content ^. (gFunToolbar . checkMB)
-        let symFButton    = content ^. (gFunToolbar . symFrameB)
+        newFButton    <- xmlGetWidget xml castToToolButton "newFileButton"
+        openFButton   <- xmlGetWidget xml castToToolButton "openFileButton"
+        saveFButton   <- xmlGetWidget xml castToToolButton "saveFileButton"
+        saveAtFButton <- xmlGetWidget xml castToToolButton "saveFileAtButton"
+        closeFButton  <- xmlGetWidget xml castToToolButton "closeFileButton"
+        checkMButton  <- xmlGetWidget xml castToToolButton "checkModuleButton"
+        symFButton    <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
         
         onToolButtonClicked newFButton    (eval createNewFile content st)
         onToolButtonClicked openFButton   (eval openFile content st)
@@ -221,26 +153,32 @@ configMenuBarButtons = ask >>= \content -> get >>= \st ->
         onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
         onToolButtonClicked checkMButton  (eval checkSelectFile content st)
         onToolButtonClicked symFButton    (eval configSymFrameButton content st)
-            
+        
         return ()
     where
         eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
         eval action content str = evalRWST action content str >> return ()
 
-configToolBarButtons :: GuiMonad ()
-configToolBarButtons = ask >>= \content ->
-        liftIO $ do
-        let (quitB,window) = flip (^.) (gFunMenuBar . quitButton) 
-                             &&& 
-                             flip (^.) gFunWindow $ content
+-- | Configura los botones del menude archivo.
+configToolBarButtons :: GladeXML -> GuiMonad ()
+configToolBarButtons xml = ask >>= \content -> 
+        io $ do
+        let window = content ^. gFunWindow
+        quitB  <- xmlGetWidget xml castToMenuItem "quitButton"
+        
         onActivateLeaf quitB $ widgetDestroy window
         return ()
 
+-- | Configura la ventana principal.
 configWindow :: GuiMonad ()
 configWindow = ask >>= \content -> 
-        liftIO $ do
+        io $ do
         let window = content ^. gFunWindow
         windowMaximize window
         widgetShowAll window
         onDestroy window mainQuit
         return ()
+
+-- | Mensaje de error en caso de no encontrar el archivo glade correspondiente.
+msgErrGladeNotFound :: String
+msgErrGladeNotFound = "Archivo fun.glade no encontrado"

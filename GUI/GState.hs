@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell,FlexibleInstances, TypeSynonymInstances,MultiParamTypeClasses,NoMonomorphismRestriction #-}
+{-# LANGUAGE TemplateHaskell, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, NoMonomorphismRestriction #-}
 module GUI.GState where
 
 import Lens.Family
@@ -9,6 +10,7 @@ import Fun.Module
 import Fun.Eval.Interact(EvResult)
 
 import Graphics.UI.Gtk hiding (get)
+import Graphics.UI.Gtk.SourceView
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
@@ -25,14 +27,7 @@ data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(mkLenses ''FunMenuBar)
 
 -- | Información sobre los items del toolBar.
-data FunToolbar = FunToolbar { _newFB     :: ToolButton
-                             , _openFB    :: ToolButton
-                             , _saveFB    :: ToolButton
-                             , _saveAtFB  :: ToolButton
-                             , _closeFB   :: ToolButton
-                             , _checkMB   :: ToolButton
-                             , _symFrameB :: ToggleToolButton
-                             }
+data FunToolbar = FunToolbar { _symFrameB :: ToggleToolButton }
 $(mkLenses ''FunToolbar)
 
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
@@ -81,7 +76,6 @@ $(mkLenses ''FunSymList)
 -- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
 -- del archivo glade.
 data GReader = GReader { _gFunWindow    :: Window
-                       , _gFunMenuBar   :: FunMenuBar
                        , _gFunToolbar   :: FunToolbar
                        , _gFunMainPaned :: FunMainPaned
                        , _gFunInfoPaned :: FunInfoPaned

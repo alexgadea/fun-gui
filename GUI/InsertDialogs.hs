@@ -107,8 +107,7 @@ runDialog decDlg =
             exprBuf <- textViewGetBuffer $ declExpr decDlg
             iter1 <- textBufferGetStartIter exprBuf
             iter2 <- textBufferGetEndIter exprBuf
-            expr <- textBufferGetText exprBuf iter1 iter2 False
-            return expr
+            textBufferGetText exprBuf iter1 iter2 False
           
           insertText :: TextView -> String -> IO ()
           insertText tv str = do

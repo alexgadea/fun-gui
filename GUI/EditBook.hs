@@ -104,16 +104,9 @@ createTextEdit mcode = do
                         
             texte <- createTextEntry mcode
             
-            --portv <- io $ viewportNew hAdj vAdj
-            --io $ set portv   [containerChild := texte]
-            
             io $  containerAdd swindow texte
             
             io $ widgetShowAll texte
-            
-            --io $ widgetShowAll portv
-            
-            --io $ set swindow [containerChild := portv]
             
             io $ widgetShowAll swindow
             
@@ -136,7 +129,7 @@ getTextEditFromNotebook notebook = do
             cPageNum       <- notebookGetCurrentPage notebook
             Just cpSW      <- notebookGetNthPage notebook cPageNum
             Just textViewN <- notebookGetTabLabelText notebook cpSW
-            [tv]    <- containerGetChildren (castToContainer cpSW)
+            [tv]           <- containerGetChildren (castToContainer cpSW)
             return (textViewN,castToTextView tv)
             
 -- | Dado un EditBook y un nombre de módulo, actualiza el mapeo entre tabs-nombres de modulos

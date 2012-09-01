@@ -1,23 +1,18 @@
 -- | Configuración de la lista de axiomas.
 module GUI.AxiomList where
 
-import Equ.Syntax
-import Equ.Proof 
+import Equ.Proof (Basic(..),Truth (..)) 
 import qualified Equ.Theories as ET (axiomGroup,Grouped,toForest) 
-import qualified Equ.Proof.Proof as P
+
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
-import Graphics.UI.Gtk.Gdk.Events 
 
 import Data.Text(unpack,pack)
-import Data.Maybe
-import Data.Map (empty,elems)
 import Data.Tree
 
 import Lens.Family
 
-import Control.Monad(liftM, when,unless)
-import Control.Monad.Trans(liftIO)
-import Control.Monad.Trans.RWS
+import Control.Monad(when,unless)
+import Control.Monad.Trans.RWS (evalRWST,ask,get)
 import qualified Data.Foldable as F (mapM_) 
 
 import GUI.GState

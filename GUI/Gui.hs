@@ -25,6 +25,7 @@ import GUI.GState
 import GUI.EditBook
 import GUI.Config
 import GUI.SymbolList
+import GUI.AxiomList
 import GUI.EvalConsole
 import GUI.InfoConsole
 import GUI.Utils
@@ -44,10 +45,11 @@ main = do
                 configToolBarButtons  xml
                 configCommandConsole
                 configSymbolList
+                configAxiomList
             ) gReader gState
 
     mainGUI
-
+    
 -- | Configura los botones de insert de declaraciones del menu.
 configInsertMenuItems :: GladeXML -> GuiMonad ()
 configInsertMenuItems xml = ask >>= \content -> get >>= \st -> 
@@ -92,6 +94,10 @@ makeGState xml = do
         symIV      <- xmlGetWidget xml castToIconView "symbolList"
         goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
         
+        axFrame  <- xmlGetWidget xml castToFrame "axiomFrame"
+        axTV     <- xmlGetWidget xml castToTreeView "axiomList"
+        axFrameB <- xmlGetWidget xml castToToggleToolButton "AxiomFrameButton"
+        
         window <- xmlGetWidget xml castToWindow "mainWindow"
         
         edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
@@ -111,10 +117,11 @@ makeGState xml = do
         commIChan <- atomically newEmptyTMVar
         commOChan <- atomically newEmptyTMVar
         
-        let funToolbarST    = FunToolbar symFrameB
+        let funToolbarST    = FunToolbar symFrameB axFrameB
         let funMainPanedST  = FunMainPaned mainPaned
         let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+        let funAxListST     = FunAxList axFrame axTV
         let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
@@ -126,6 +133,7 @@ makeGState xml = do
                               funMainPanedST
                               funInfoPanedST
                               funSymListST
+                              funAxListST
                               funStatusbar 
                               funEditorPaned
                               funCommConsole
@@ -144,6 +152,7 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
         closeFButton  <- xmlGetWidget xml castToToolButton "closeFileButton"
         checkMButton  <- xmlGetWidget xml castToToolButton "checkModuleButton"
         symFButton    <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+        axFButton     <- xmlGetWidget xml castToToggleToolButton "AxiomFrameButton"
         
         onToolButtonClicked newFButton    (eval createNewFile content st)
         onToolButtonClicked openFButton   (eval openFile content st)
@@ -152,6 +161,7 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
         onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
         onToolButtonClicked checkMButton  (eval checkSelectFile content st)
         onToolButtonClicked symFButton    (eval configSymFrameButton content st)
+        onToolButtonClicked axFButton     (eval configAxFrameButton content st)
         
         return ()
 

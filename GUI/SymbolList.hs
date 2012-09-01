@@ -137,7 +137,7 @@ oneSelection list path = do
         configSelection :: FunEditBook -> GuiMonad ()
         configSelection editBook = 
                 getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
-                io (getElem list path) >>=  -- F.mapM_ (addToEndOfBuffer tv)
+                io (getElem list path) >>=
                 F.mapM_ (addToCursorBuffer tv)
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do

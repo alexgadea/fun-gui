@@ -28,7 +28,9 @@ data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(mkLenses ''FunMenuBar)
 
 -- | Información sobre los items del toolBar.
-data FunToolbar = FunToolbar { _symFrameB :: ToggleToolButton }
+data FunToolbar = FunToolbar { _symFrameB :: ToggleToolButton
+                             , _axFrameB :: ToggleToolButton
+                             }
 $(mkLenses ''FunToolbar)
 
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
@@ -74,14 +76,21 @@ data FunSymList = FunSymList { _gSymFrame    :: Frame
                              }
 $(mkLenses ''FunSymList)
 
+-- | Información sobre la lista de axiomas.
+data FunAxList = FunAxList { _gAxFrame    :: Frame 
+                           , _gAxTreeView :: TreeView
+                           }
+$(mkLenses ''FunAxList)
+
 -- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
 -- del archivo glade.
-data GReader = GReader { _gFunWindow    :: Window
-                       , _gFunToolbar   :: FunToolbar
-                       , _gFunMainPaned :: FunMainPaned
-                       , _gFunInfoPaned :: FunInfoPaned
-                       , _gFunSymbolList :: FunSymList
-                       , _gFunStatusbar :: Statusbar
+data GReader = GReader { _gFunWindow      :: Window
+                       , _gFunToolbar     :: FunToolbar
+                       , _gFunMainPaned   :: FunMainPaned
+                       , _gFunInfoPaned   :: FunInfoPaned
+                       , _gFunSymbolList  :: FunSymList
+                       , _gFunAxiomList   :: FunAxList
+                       , _gFunStatusbar   :: Statusbar
                        , _gFunEditorPaned :: FunEditorPaned
                        , _gFunCommConsole :: FunCommConsole
                        , _gFunInfoConsole :: FunInfoConsole

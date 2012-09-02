@@ -80,7 +80,7 @@ closeCurrentFile = getGState >>= \st ->
         upList :: Int -> [a] -> [a]
         upList n ls = (init $ take (n+1) ls) ++ (drop (n+1) ls)
 
--- | Chequea un archivo cargando, esto implica parsearlo, typechequearlo y
+-- | Chequea un archivo cargado, esto implica parsearlo, typechequearlo y
 -- validarlo.
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 

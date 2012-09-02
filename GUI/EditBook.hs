@@ -87,9 +87,6 @@ createTextEntry mcode = do
 
             configSourceView sourceview
             
-            -- io $ boxPackStart hbox l PackNatural 0
-            -- io $ boxPackStart hbox sourceview PackGrow 0
-            
             return sourceview
     where
         loadCode :: TextBufferClass tbuffer => tbuffer -> String -> IO ()

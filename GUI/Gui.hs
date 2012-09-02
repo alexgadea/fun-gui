@@ -81,12 +81,8 @@ makeGState xml = do
         
         mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
         
-        iSpecs <- xmlGetWidget xml castToExpander "expSpecs"
-        iFuncs <- xmlGetWidget xml castToExpander "expFuncs"
-        iThms  <- xmlGetWidget xml castToExpander "expThms"
-        iVals  <- xmlGetWidget xml castToExpander "expVals"
-        iProps <- xmlGetWidget xml castToExpander "expProps"
-        loadedMod <- xmlGetWidget xml castToLabel "labelLoadedModule"
+        declFrame  <- xmlGetWidget xml castToFrame "declFrame"
+        loadedMod  <- xmlGetWidget xml castToLabel "labelLoadedModule"
         
         symFrame   <- xmlGetWidget xml castToFrame "symFrame"
         goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
@@ -119,7 +115,7 @@ makeGState xml = do
         
         let funToolbarST    = FunToolbar symFrameB axFrameB
         let funMainPanedST  = FunMainPaned mainPaned
-        let funInfoPanedST  = FunInfoPaned iSpecs iFuncs iThms iVals iProps loadedMod
+        let funInfoPanedST  = FunInfoPaned declFrame loadedMod
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
         let funAxListST     = FunAxList axFrame axTV
         let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan

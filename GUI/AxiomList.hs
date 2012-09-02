@@ -97,11 +97,13 @@ oneSelection list tree =
             return (st ^. gFunEditBook) >>= \mEditBook ->
             maybe (return ()) (configSelection h) mEditBook
     where
+        justification :: String -> String
+        justification j = "{ " ++ j ++ " }"
         configSelection :: TreePath -> FunEditBook -> GuiMonad ()
         configSelection path editBook = 
                 getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
                 io (treeStoreGetValue list path) >>= \ax ->
-                addToCursorBuffer tv ax
+                addToCursorBuffer tv $ justification ax
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv

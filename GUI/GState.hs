@@ -52,11 +52,7 @@ $(mkLenses ''FunInfoConsole)
 data FunEditorPaned = FunEditorPaned { _epaned :: VPaned }
 $(mkLenses ''FunEditorPaned)
 
-data FunInfoPaned = FunInfoPaned { _iSpecs    :: Expander
-                                 , _iFuncs    :: Expander
-                                 , _iThms     :: Expander
-                                 , _iVals     :: Expander
-                                 , _iProps    :: Expander
+data FunInfoPaned = FunInfoPaned { _gDeclFrame    :: Frame 
                                  , _loadedMod :: Label
                                  }
 $(mkLenses ''FunInfoPaned)

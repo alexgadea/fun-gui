@@ -39,26 +39,48 @@ data DeclState = DNoState
                | DError
 
 -- | Nombre a mostrar y acción al hace click.
-data DeclItem = DeclItem { _declName :: String
-                         , _declPos :: DeclPos
-                         , _declState :: DeclState
+data DeclItem = DeclItem { _declName  :: String
+                         , _declPos   :: Maybe DeclPos
+                         , _declState :: Maybe DeclState
                          }
 $(mkLenses ''DeclItem)
 
+type DeclType = String
 
+type ForestDecl d = (DeclType,[(DeclPos,d)])
+
+strToDeclItem :: String -> DeclItem
+strToDeclItem s = DeclItem s Nothing Nothing
+
+toForestDecl :: (Decl d, Show d) => ForestDecl d -> Forest DeclItem
+toForestDecl (dt,ds) = [Node (strToDeclItem dt)
+                             (map (\(pos,d) -> Node (newItem d pos) []) ds)]
+    where newItem d p = DeclItem (unpack $ getNameDecl d) (Just p) (Just DChecked)
+
+toForestEnv :: Environment -> Forest DeclItem
+toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
+    where
+        newDeclSpec :: Module -> Forest DeclItem
+        newDeclSpec m = toForestDecl ("Especificaciones", specs $ decls m)
+        newDeclFunc :: Module -> Forest DeclItem
+        newDeclFunc m = toForestDecl ("Functions",functions $ decls m)
+        newDeclThm :: Module -> Forest DeclItem
+        newDeclThm m = toForestDecl ("Teoremas",theorems $ decls m)
+        newDeclVal :: Module -> Forest DeclItem
+        newDeclVal m = toForestDecl ("Valores", vals $ decls m)
+        newDeclDer :: Module -> Forest DeclItem
+        newDeclDer m = toForestDecl ("Derivaciones", vals $ decls m)
+        newDecls :: Module -> Forest DeclItem
+        newDecls m = newDeclSpec m ++ newDeclFunc m ++ 
+                     newDeclThm m ++ newDeclVal m ++ newDeclDer m
+    
 -- | Crea un treeStore para los DeclItem.
-listDecls :: (Decl d, Show d) => [(DeclPos,d)] -> GuiMonad (TreeStore DeclItem)
-listDecls decls = io $ treeStoreNew $ toForest decls
-
--- | Crea un forest de DeclItem.
-toForest :: (Decl d, Show d) => [(DeclPos,d)] -> Forest DeclItem
-toForest = map (\(pos,d) -> Node (newItem d pos) [])
-    where newItem d p = DeclItem (unpack $ getNameDecl d) p DNoState
+listDecls :: Environment -> GuiMonad (TreeStore DeclItem)
+listDecls = io . treeStoreNew . toForestEnv
 
 -- | Configura una lista de posición y declaracion.
-setupDeclList :: (Decl d, Show d) => [(DeclPos,d)] -> TreeView -> Window -> 
-                                     GuiMonad (TreeStore DeclItem)
-setupDeclList decls tv pwin  = listDecls decls >>= setupDList
+setupDeclList :: Environment -> TreeView -> Window -> GuiMonad (TreeStore DeclItem)
+setupDeclList env tv pwin  = listDecls (reverse env) >>= setupDList
     where
         setupDList :: TreeStore DeclItem -> GuiMonad (TreeStore DeclItem)
         setupDList list = do
@@ -72,50 +94,57 @@ setupDeclList decls tv pwin  = listDecls decls >>= setupDList
                 treeViewSetHeadersVisible tv False >>
                 treeViewSetModel tv list >>
                 cellRendererTextNew >>= \renderer ->
-                cellRendererPixbufNew >>= \stateRend ->
-                cellLayoutPackStart colSt stateRend False >>
                 cellLayoutPackStart colName renderer False >>
+                treeViewColumnSetSizing colName TreeViewColumnAutosize >>
                 cellLayoutSetAttributes colName renderer list 
                                     (\ind -> [ cellText := ind ^. declName ]) >>
-                cellLayoutSetAttributes colSt stateRend list 
-                                    (\ind -> maybe []
+                                    
+               cellRendererPixbufNew >>= \stateRend ->
+               cellLayoutPackStart colSt stateRend False >>
+               treeViewColumnSetSizing colSt TreeViewColumnAutosize >>
+               cellLayoutSetAttributes colSt stateRend list 
+                                    (\ind -> maybe [ cellPixbufStockId := stockDnd ]
                                             (\img -> [ cellPixbufStockId := img ])
                                             (declStateImg (ind ^. declState))) >>
                 treeViewAppendColumn tv colSt >>
                 treeViewAppendColumn tv colName >>
                 treeViewGetSelection tv >>= \tree ->
                 onSelectionChanged tree (evalRWST (onSelection list tree) content s >> return ()) >>
-                return list
+                return list    
 
-
-declStateImg DNoState = Nothing
-declStateImg DUnknown = Just stockDialogQuestion
-declStateImg DChecked = Just stockOk
-declStateImg DError = Just stockDialogError
+declStateImg Nothing = Nothing
+declStateImg (Just DNoState) = Nothing
+declStateImg (Just DUnknown) = Just stockDialogQuestion
+declStateImg (Just DChecked) = Just stockOk
+declStateImg (Just DError) = Just stockDialogError
 
 onSelection :: TreeStore DeclItem -> TreeSelection -> GuiMonad ()
 onSelection list tree = do
 
     sel <- io $ treeSelectionGetSelectedRows tree
+    
     unless (null sel) $ do
             let h = head sel
-            pos <- io $ (^. declPos) <$> treeStoreGetValue list h 
+            mpos <- io $ (^. declPos) <$> treeStoreGetValue list h 
             
-            s <- getGState
-            let Just ebook = s ^. gFunEditBook
-            let notebook = ebook ^. book
-            let mName = moduleName pos
-            
-            io $ containerForeach notebook
-                    (\child -> notebookGetTabLabelText notebook child >>=
-                    \(Just labtext) ->
-                    (when (labtext == unpack mName) $
-                                selectPage notebook child >>
-                                getTextEditFromNotebook notebook >>= 
-                                \(_,tview) -> textViewGetBuffer tview >>= 
-                                \tbuffer -> selectText pos tbuffer tview >>
-                                treeSelectionUnselectAll tree >>
-                                return ()))
+            case mpos of
+                Nothing -> return ()
+                Just pos -> do
+                    s <- getGState
+                    let Just ebook = s ^. gFunEditBook
+                    let notebook = ebook ^. book
+                    let mName = moduleName pos
+                    
+                    io $ containerForeach notebook
+                            (\child -> notebookGetTabLabelText notebook child >>=
+                            \(Just labtext) ->
+                            (when (labtext == unpack mName) $
+                                        selectPage notebook child >>
+                                        getTextEditFromNotebook notebook >>= 
+                                        \(_,tview) -> textViewGetBuffer tview >>= 
+                                        \tbuffer -> selectText pos tbuffer tview >>
+                                        treeSelectionUnselectAll tree >>
+                                        return ()))
 
                 
     where showModNotLoaded mName = 
@@ -130,11 +159,6 @@ selectText :: DeclPos -> TextBuffer -> TextView -> IO ()
 selectText pos tbuf tview = do
     let initLine = sourceLine $ begin pos
     let endLine = sourceLine $ end pos
-    
---     let initOffset = sourceColumn $ begin pos
---     let endOffset = sourceColumn $ end pos 
---     iter1 <- textBufferGetIterAtLineOffset tbuf (initLine-1) (initOffset-1)
---     iter2 <- textBufferGetIterAtLineOffset tbuf (endLine-1) (endOffset-1)
        
     iter1 <- textBufferGetIterAtLine tbuf (initLine-1)
     iter2 <- textBufferGetIterAtLine tbuf (endLine-1)
@@ -151,18 +175,8 @@ updateInfoPaned env mname = do
             content <- ask 
             let w = content ^. gFunWindow
             let sb = content ^. gFunStatusbar
-            let specsList   = concatMap (specs . decls) env
-            let funcsList   = concatMap (functions . decls) env
-            let thmsList    = concatMap (theorems . decls) env
-            let valsList    = concatMap (vals . decls) env
-            let propsList   = concatMap (props . decls) env
-
-            updateInfo specsList iSpecs w content
-            updateInfo funcsList iFuncs w content
-            updateInfo thmsList  iThms  w content
-            updateInfo valsList  iVals  w content
-            updateInfo propsList iProps w content
             
+            updateInfo w content
             
             let labModule = content ^. (gFunInfoPaned . loadedMod)
             
@@ -170,21 +184,17 @@ updateInfoPaned env mname = do
             
             return ()
     where
-        updateInfo [] getExpndr w content = do
-                    let expander = content ^. (gFunInfoPaned . getExpndr)
-                    io $ cleanExpander expander
-                    io $ set expander [ expanderExpanded := False ]
-        updateInfo decls getExpndr w content = do
-                    let expander = content ^. (gFunInfoPaned . getExpndr)
-                    tv <- io treeViewNew
-                    setupDeclList decls tv w
-                    io $ cleanExpander expander
-                    io $ set expander [ containerChild := tv 
-                                      , expanderExpanded := True
-                                      ]
-                    io $ widgetShowAll expander
+        updateInfo :: Window -> GReader -> GuiMonad ()
+        updateInfo w content = do
+                    let declF = content ^. (gFunInfoPaned . gDeclFrame)
+                    cs <- io $ containerGetChildren declF
+                    tv <- io $ cleanTreeView $ castToAlignment (head cs)
+                    setupDeclList env tv w
+                    io $ widgetShowAll tv
                     return ()
-        cleanExpander :: Expander -> IO ()
-        cleanExpander e = do
-                    cs <- io $ containerGetChildren e
-                    when (length cs > 1) (containerRemove e $ head cs)
+        cleanTreeView :: Alignment-> IO TreeView
+        cleanTreeView ali = containerGetChildren ali >>= \[tv] ->
+                            containerRemove ali tv >>
+                            treeViewNew >>= \tvnew ->
+                            containerAdd ali tvnew >>
+                            return tvnew

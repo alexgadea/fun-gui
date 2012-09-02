@@ -3,7 +3,9 @@
   <!-- interface-requires gtk+ 2.24 -->
   <!-- interface-naming-policy project-wide -->
   <widget class="GtkWindow" id="mainWindow">
-    <property name="can_focus">False</property>
+    <property name="can_focus">True</property>
+    <property name="has_focus">True</property>
+    <property name="is_focus">True</property>
     <property name="window_position">center</property>
     <child>
       <widget class="GtkVBox" id="mainBox">
@@ -394,158 +396,39 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <widget class="GtkVPaned" id="infoPaned">
+                      <widget class="GtkFrame" id="declFrame">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">none</property>
                         <child>
-                          <widget class="GtkExpander" id="expSpecs">
+                          <widget class="GtkAlignment" id="alignment1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="left_padding">12</property>
                             <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <widget class="GtkLabel" id="label1">
+                              <widget class="GtkTreeView" id="declList">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Especificaciones</property>
+                                <property name="can_focus">True</property>
                               </widget>
-                              <packing>
-                                <property name="type">label_item</property>
-                              </packing>
                             </child>
                           </widget>
-                          <packing>
-                            <property name="resize">False</property>
-                            <property name="shrink">True</property>
-                          </packing>
                         </child>
                         <child>
-                          <widget class="GtkVPaned" id="vpaned1">
+                          <widget class="GtkLabel" id="labelAxioms1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <child>
-                              <widget class="GtkExpander" id="expFuncs">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="label2">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Funciones</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="type">label_item</property>
-                                  </packing>
-                                </child>
-                              </widget>
-                              <packing>
-                                <property name="resize">False</property>
-                                <property name="shrink">True</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkVPaned" id="vpaned2">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <child>
-                                  <widget class="GtkExpander" id="expThms">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <child>
-                                      <placeholder/>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkLabel" id="label3">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label" translatable="yes">Teoremas</property>
-                                      </widget>
-                                      <packing>
-                                        <property name="type">label_item</property>
-                                      </packing>
-                                    </child>
-                                  </widget>
-                                  <packing>
-                                    <property name="resize">False</property>
-                                    <property name="shrink">True</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkVPaned" id="vpaned3">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <child>
-                                      <widget class="GtkExpander" id="expVals">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label4">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Valores</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="type">label_item</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="resize">False</property>
-                                        <property name="shrink">True</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkExpander" id="expProps">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label5">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Proposiciones</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="type">label_item</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="resize">True</property>
-                                        <property name="shrink">True</property>
-                                      </packing>
-                                    </child>
-                                  </widget>
-                                  <packing>
-                                    <property name="resize">True</property>
-                                    <property name="shrink">True</property>
-                                  </packing>
-                                </child>
-                              </widget>
-                              <packing>
-                                <property name="resize">True</property>
-                                <property name="shrink">True</property>
-                              </packing>
-                            </child>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Módulos cargados&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
                           </widget>
                           <packing>
-                            <property name="resize">True</property>
-                            <property name="shrink">True</property>
+                            <property name="type">label_item</property>
                           </packing>
                         </child>
                       </widget>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -570,10 +453,14 @@
                   <widget class="GtkVPaned" id="editorPaned">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="position">400</property>
                     <child>
                       <widget class="GtkDrawingArea" id="drawingarea1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="has_focus">True</property>
+                        <property name="is_focus">True</property>
+                        <property name="can_default">True</property>
                       </widget>
                       <packing>
                         <property name="resize">True</property>

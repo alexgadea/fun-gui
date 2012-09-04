@@ -29,7 +29,10 @@ import Fun.Decl
 import Fun.Decl.Error
 import Fun.Environment
 import Fun.Module
+import Fun.Module.Error
 import Fun.Declarations
+import Fun.Derivation hiding (prog)
+import Fun.Verification
 
 import GUI.InfoConsole
 
@@ -41,39 +44,106 @@ data DeclState = DNoState
 -- | Nombre a mostrar y acción al hace click.
 data DeclItem = DeclItem { _declName  :: String
                          , _declPos   :: Maybe DeclPos
+                         , _declErr   :: Maybe String
                          , _declState :: Maybe DeclState
                          }
 $(mkLenses ''DeclItem)
 
 type DeclType = String
 
-type ForestDecl d = (DeclType,[(DeclPos,d)])
+type ForestDecl d = (DeclType,[(DeclPos,d)],[ErrInDecl d])
 
 strToDeclItem :: String -> DeclItem
-strToDeclItem s = DeclItem s Nothing Nothing
+strToDeclItem s = DeclItem s Nothing Nothing Nothing
 
 toForestDecl :: (Decl d, Show d) => ForestDecl d -> Forest DeclItem
-toForestDecl (dt,ds) = [Node (strToDeclItem dt)
-                             (map (\(pos,d) -> Node (newItem d pos) []) ds)]
-    where newItem d p = DeclItem (unpack $ getNameDecl d) (Just p) (Just DChecked)
+toForestDecl (dt,ds,ids) = 
+            [Node (strToDeclItem dt)
+                  (map (\(pos,d) -> Node (newValidItem d (Just pos)) []) ds
+                  ++
+                  map (\errd -> 
+                        Node (newInvalidItem (Just $ show $ errs errd)
+                                             (eDecl errd) 
+                                             (Just $ ePos errd)
+                                             ) []) ids
+                  )
+            ] 
+
+toForestVerif :: (String,[Verification],[ErrInVerif Verification]) -> 
+                 Forest DeclItem
+toForestVerif (dt,vs,ivs) = 
+            [Node (strToDeclItem dt)
+                  (map (\v-> Node (newValidItem (prog v) Nothing) []) vs
+                  ++
+                  map (\errd -> 
+                        Node (newInvalidItem (Just $ show $ fst errd)
+                                             (prog $ snd errd) 
+                                             Nothing
+                                             ) []) ivs
+                  )
+            ]
+
+
+toForestDer :: (String,[(DeclPos,DerivDecl)],[ErrInDeriv DerivDecl]) -> 
+               Forest DeclItem
+toForestDer (dt,ds,ids) = 
+            [Node (strToDeclItem dt)
+                  (map (\(pos,d)-> Node (newValidItem d (Just pos)) []) ds
+                  ++
+                  map (\errd -> 
+                        Node (newInvalidItem (Just $ show $ fst errd)
+                                             (snd errd)
+                                             Nothing
+                                             ) []) ids
+                  )
+            ]
 
 toForestEnv :: Environment -> Forest DeclItem
 toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
     where
         newDeclSpec :: Module -> Forest DeclItem
-        newDeclSpec m = toForestDecl ("Especificaciones", specs $ decls m)
+        newDeclSpec m = toForestDecl ( "Especificaciones"
+                                     , specs $ validDecls m
+                                     , inSpecs $ decls $ invalidDecls  m
+                                     )
         newDeclFunc :: Module -> Forest DeclItem
-        newDeclFunc m = toForestDecl ("Functions",functions $ decls m)
+        newDeclFunc m = toForestDecl ( "Functions"
+                                     , functions $ validDecls m
+                                     , inFunctions $ decls $ invalidDecls m
+                                     )
         newDeclThm :: Module -> Forest DeclItem
-        newDeclThm m = toForestDecl ("Teoremas",theorems $ decls m)
+        newDeclThm m = toForestDecl ( "Teoremas"
+                                    , theorems $ validDecls m
+                                    , inTheorems $ decls $ invalidDecls m
+                                    )
         newDeclVal :: Module -> Forest DeclItem
-        newDeclVal m = toForestDecl ("Valores", vals $ decls m)
+        newDeclVal m = toForestDecl ( "Valores"
+                                    , vals $ validDecls m
+                                    , inVals $ decls $ invalidDecls m
+                                    )
         newDeclDer :: Module -> Forest DeclItem
-        newDeclDer m = toForestDecl ("Derivaciones", vals $ decls m)
+        newDeclDer m = toForestDer  ( "Derivaciones"
+                                    , derivs $ validDecls m
+                                    , inDerivs $ decls $ invalidDecls m
+                                    )
+        newVerif :: Module -> Forest DeclItem
+        newVerif m = toForestVerif ( "Verificaciones"
+                                   , verifications m
+                                   , verifs $ invalidDecls m
+                                   )
         newDecls :: Module -> Forest DeclItem
         newDecls m = newDeclSpec m ++ newDeclFunc m ++ 
-                     newDeclThm m ++ newDeclVal m ++ newDeclDer m
-    
+                     newDeclThm m  ++ newDeclVal m  ++ 
+                     newDeclDer m ++ newVerif m
+
+newValidItem :: Decl a => a -> Maybe DeclPos -> DeclItem
+newValidItem   = newItem (Just DChecked) Nothing 
+newInvalidItem :: Decl a => Maybe String -> a -> Maybe DeclPos -> DeclItem
+newInvalidItem = newItem (Just DError) 
+
+newItem :: Decl a => Maybe DeclState -> Maybe String -> a -> Maybe DeclPos -> DeclItem
+newItem v err d p = DeclItem (unpack $ getNameDecl d) p err v
+
 -- | Crea un treeStore para los DeclItem.
 listDecls :: Environment -> GuiMonad (TreeStore DeclItem)
 listDecls = io . treeStoreNew . toForestEnv
@@ -125,7 +195,10 @@ onSelection list tree = do
     
     unless (null sel) $ do
             let h = head sel
-            mpos <- io $ (^. declPos) <$> treeStoreGetValue list h 
+            mpos <- io $ (^. declPos) <$> treeStoreGetValue list h
+            merr <- io $ (^. declErr) <$> treeStoreGetValue list h
+            
+            maybe (return ()) (printErrorMsg) merr
             
             case mpos of
                 Nothing -> return ()

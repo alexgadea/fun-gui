@@ -2,6 +2,8 @@
 module GUI.AxiomList where
 
 import Equ.Proof (Basic(..),Truth (..)) 
+import Equ.Rule (Relation,relRepr)
+import Equ.Theories (relationList)
 import qualified Equ.Theories as ET (axiomGroup,Grouped,toForest) 
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
@@ -50,8 +52,12 @@ configAxFrameButton = do
 configAxiomList :: GuiMonad ()
 configAxiomList = do
             content <- ask
-            let af = content ^. (gFunAxiomList . gAxFrame)
-            let tv = content ^. (gFunAxiomList . gAxTreeView)
+            let af  = content ^. (gFunAxiomList . gAxFrame)
+            let tv  = content ^. (gFunAxiomList . gAxTreeView)
+            let axr = content ^. (gFunAxiomList . gAxRel)
+            
+            list <- io relationListStore
+            setupComboRel axr list
             
             list <- io listAxioms
             io $ setupAxiomList tv list
@@ -90,22 +96,40 @@ eventsAxiomList tv list =
 -- | Configuración de un evento en un elemento particular del treeview de 
 -- axiomas.
 oneSelection :: TreeStore AxiomItem -> TreeSelection -> GuiMonad ()
-oneSelection list tree =
+oneSelection list tree = 
             io (treeSelectionGetSelectedRows tree) >>= \sel ->
             unless (null sel) $ return (head sel) >>= \h ->
-            unless (length h == 1) $ getGState >>= \st -> 
+            unless (length h == 1) $ getGState >>= \st ->
             return (st ^. gFunEditBook) >>= \mEditBook ->
             maybe (return ()) (configSelection h) mEditBook
     where
-        justification :: String -> String
-        justification j = "{ " ++ j ++ " }"
+        justification :: [Relation] -> Int -> String -> String
+        justification rs i j = (unpack $ relRepr (rs!!i)) ++ " { " ++ j ++ " }"
         configSelection :: TreePath -> FunEditBook -> GuiMonad ()
-        configSelection path editBook = 
+        configSelection path editBook = ask >>= \content -> 
+                return (content ^. (gFunAxiomList . gAxRel)) >>= \axRel ->
                 getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
                 io (treeStoreGetValue list path) >>= \ax ->
-                addToCursorBuffer tv $ justification ax
+                io (relationListStore) >>= \lsrel ->
+                io (listStoreToList lsrel) >>= \l ->
+                io (comboBoxGetActive axRel) >>= \i ->
+                addToCursorBuffer tv $ justification l i ax
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv
                 textBufferInsertAtCursor buf repr
                 widgetGrabFocus tv
+
+-- | ListStore de símbolos de relación.
+relationListStore :: IO (ListStore Relation)
+relationListStore = listStoreNew relationList
+
+-- | Configuración del comboBox de relaciones.
+setupComboRel :: ComboBox -> ListStore Relation -> GuiMonad ()
+setupComboRel combo list = io $ do
+    renderer <- cellRendererTextNew
+    cellLayoutPackStart combo renderer False
+    cellLayoutSetAttributes combo renderer list
+                  (\ind -> [cellText := unpack $ relRepr ind])
+    comboBoxSetModel combo (Just list)
+    comboBoxSetActive combo 0

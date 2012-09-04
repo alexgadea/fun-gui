@@ -75,6 +75,7 @@ $(mkLenses ''FunSymList)
 -- | Información sobre la lista de axiomas.
 data FunAxList = FunAxList { _gAxFrame    :: Frame 
                            , _gAxTreeView :: TreeView
+                           , _gAxRel      :: ComboBox
                            }
 $(mkLenses ''FunAxList)
 

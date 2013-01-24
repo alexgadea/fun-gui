@@ -23,6 +23,7 @@ import GUI.EvalConsole(resetEnv)
 
 import Fun.Environment
 import Fun.Parser
+import Fun.Module(allDeclsValid)
 import Fun.Module.Error
 import Fun.Module (ModName)
 
@@ -98,11 +99,15 @@ checkSelectFile =
                 eRes <- io $ loadMainModuleFromFile $ fromJust mfp
                 either (\err -> updEnv [] Nothing >> printErrorMsg (show err)) 
                         (\(env,mName) -> updEnv env (Just mName) >> 
-                                printInfoMsg "Módulo Cargado." >>
+                                return (getModule env mName) >>= \(Just mainm) ->
+                                (if allDeclsValid mainm
+                                   then return "."
+                                   else return " con errores.") >>= \str ->
+                                printInfoMsg ("Módulo "++ (unpack mName) ++ " cargado" ++ str) >>
                                 resetEnv >>
                                 updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname
+        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env)))
 
 -- | Función para cargar un archivo.
 openFile :: GuiMonad ()

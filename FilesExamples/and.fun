@@ -10,7 +10,7 @@ let derivation and by recursion on xs
                          〈∀ i : 0 ≤ i ∧ i < #[]: [].i 〉 
                ≡ { Longitud de la lista vacía }
                          〈∀ i : 0 ≤ i ∧ i < 0: [].i 〉 
-               ≡ { Harry Potter Equivalencia }
+               ≡ { Intervalo Vacío }
                          〈∀ i : False : [].i〉 
                ≡ { Rango Vacío Para Todo }
                          True
@@ -20,7 +20,7 @@ let derivation and by recursion on xs
                                 〈∀ i : 0 ≤ i ∧ i < #(y ▹ ys) : (y ▹ ys).i〉
                     ≡ { Longitud de lista no vacía }
                                 〈∀ i : 0 ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
-                    ≡ { Harry Potter Equivalencia }
+                    ≡ { Aritmética en Intervalo }
                                 〈∀ i : i = 0 ∨ (0 < i ∧ i < succ (#ys)) : (y ▹ ys).i〉
                     ≡ { Partición de Rango Para Todo }
                                 〈∀ i : i = 0 : (y ▹ ys).i〉 ∧ 〈∀ i : 0 < i ∧ i < succ (#ys) : (y ▹ ys).i〉
@@ -28,7 +28,9 @@ let derivation and by recursion on xs
                                 (y ▹ ys).0 ∧ 〈∀ i : 0 < i ∧ i < succ(#ys) : (y ▹ ys).i〉
                     ≡ { Proyectar el elemento inicial }
                                 y ∧ 〈∀ i : 0 < i ∧ i < succ(#ys) : (y ▹ ys).i〉
-                    ≡ { Harry Potter Equivalencia }
+                    ≡ { Relación entre < y ≤ }
+                                y ∧ 〈∀ i : succ i ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
+                    ≡ { Reindizado Para Todo }
                                 y ∧ 〈∀ i : 0 ≤ i ∧ i < #ys : (y ▹ ys).(succ i)〉
                     ≡ { Proyectar el elemento (i+1) }
                                 y ∧ 〈∀ i : 0 ≤ i ∧ i < #ys : ys.i〉

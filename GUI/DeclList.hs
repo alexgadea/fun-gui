@@ -121,6 +121,13 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
                                     , vals $ validDecls m
                                     , inVals $ decls $ invalidDecls m
                                     )
+        newDeclProps :: Module -> Forest DeclItem
+        newDeclProps m = toForestDecl ( "Proposiciones"
+                                    , props $ validDecls m
+                                    , inProps $ decls $ invalidDecls m
+                                    )
+                                    
+                                    
         newDeclDer :: Module -> Forest DeclItem
         newDeclDer m = toForestDer  ( "Derivaciones"
                                     , derivs $ validDecls m
@@ -133,7 +140,8 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
                                    )
         newDecls :: Module -> Forest DeclItem
         newDecls m = newDeclSpec m ++ newDeclFunc m ++ 
-                     newDeclThm m  ++ newDeclVal m  ++ 
+                     newDeclThm m  ++ newDeclVal m  ++
+                     newDeclProps m ++
                      newDeclDer m ++ newVerif m
 
 newValidItem :: Decl a => a -> Maybe DeclPos -> DeclItem

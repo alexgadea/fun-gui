@@ -168,14 +168,22 @@ configToolBarButtons xml = ask >>= \content -> get >>= \st ->
             io $ do
             let window = content ^. gFunWindow
             newB  <- xmlGetWidget xml castToMenuItem "newButton"
+            openB <- xmlGetWidget xml castToMenuItem "openButton"
             saveB  <- xmlGetWidget xml castToMenuItem "saveButton"
+            saveAsB <- xmlGetWidget xml castToMenuItem "saveAsButton"
             closeB  <- xmlGetWidget xml castToMenuItem "closeButton"
             quitB  <- xmlGetWidget xml castToMenuItem "quitButton"
             
+            checkB <- xmlGetWidget xml castToMenuItem "checkButton"
+            
             onActivateLeaf newB   $ eval createNewFile    content st
+            onActivateLeaf openB   $ eval openFile    content st
             onActivateLeaf saveB  $ eval saveFile         content st
+            onActivateLeaf saveAsB  $ eval saveAtFile         content st
             onActivateLeaf closeB $ eval closeCurrentFile content st
             onActivateLeaf quitB  $ widgetDestroy window
+            
+            onActivateLeaf checkB $ eval checkSelectFile content st
             return ()
 
 -- | Configura la ventana principal.

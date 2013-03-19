@@ -119,12 +119,12 @@ makeGState xml = do
         let funInfoPanedST  = FunInfoPaned declFrame loadedMod
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
         let funAxListST     = FunAxList axFrame axTV axRel
-        let funCommConsole  = FunCommConsole commEntry commTBuf commTV commIChan commOChan
+        let funCommConsole  = FunCommConsole commEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
         
         
-        gState <- newRef $ GState [] Nothing
+        gState <- newRef $ GState [] Nothing (FunEvalState Nothing initEvalEnv)
         let gReader = GReader window 
                               funToolbarST
                               funMainPanedST

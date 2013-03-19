@@ -8,7 +8,9 @@ import Lens.Family.TH
 import Fun.Environment
 import Fun.Parser
 import Fun.Module
-import Fun.Eval.Interact(EvResult)
+import Fun.Eval.Eval(EvalEnv,createEvalEnv)
+
+import qualified Equ.PreExpr as Equ
 
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.SourceView
@@ -39,8 +41,6 @@ $(mkLenses ''FunMainPaned)
 data FunCommConsole = FunCommConsole { _commEntry :: Entry
                                      , _commTBuffer :: TextBuffer
                                      , _commTView :: TextView
-                                     , _commChan :: TMVar String
-                                     , _commRepChan :: TMVar EvResult
                                      }
 $(mkLenses ''FunCommConsole)
 
@@ -79,6 +79,12 @@ data FunAxList = FunAxList { _gAxFrame    :: Frame
                            }
 $(mkLenses ''FunAxList)
 
+data FunEvalState = FunEvalState { -- expresión en el estado del evaluador:
+                                   _evalExpr :: Maybe Equ.PreExpr
+                                 , _evalEnv :: EvalEnv
+                            }
+$(mkLenses ''FunEvalState)
+
 -- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
 -- del archivo glade.
 data GReader = GReader { _gFunWindow      :: Window
@@ -99,6 +105,7 @@ $(mkLenses ''GReader)
 -- la que contiene los campos de texto para escribir programas.
 data GState = GState { _gFunEnv :: Environment 
                      , _gFunEditBook  :: Maybe FunEditBook
+                     , _gFunEvalSt :: FunEvalState
                      }
 $(mkLenses ''GState)
 
@@ -125,3 +132,16 @@ updateGState f = do
                 gst <- readRef r
                 writeRef r $ f gst
                 put r
+                
+newEvalEnv :: GStateRef -> IO EvalEnv
+newEvalEnv ref = readRef ref >>= \st ->
+                 let funEnv = st ^. gFunEnv in
+                    return (getFuncs funEnv) >>=
+                    return . createEvalEnv
+
+initEvalEnv = createEvalEnv $ getFuncs []
+
+
+updateEvalEnv :: GuiMonad ()
+updateEvalEnv = get >>= liftIO . newEvalEnv >>= \eEnv ->
+                updateGState ((<~) gFunEvalSt (FunEvalState Nothing eEnv))

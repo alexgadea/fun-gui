@@ -3,6 +3,7 @@ module GUI.EvalConsole where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
+
 import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
 import Control.Monad.Trans.State (runStateT)
@@ -11,7 +12,6 @@ import Control.Arrow
 import Control.Applicative((<$>))
 
 import Control.Concurrent
-import Control.Concurrent.STM
 
 import Lens.Family
 
@@ -32,6 +32,8 @@ import GUI.Console
 import GUI.EvalConsole.Parser
 import GUI.EvalConsole.EvalComm
 
+import Control.Concurrent(forkIO)
+
 import Fun.Environment
 -- import Fun.Eval.Proof
 import Fun.Eval.Eval
@@ -41,8 +43,6 @@ import qualified Equ.PreExpr as PE
 
 prependPrompt = ("fun> "++)
 
-type EvResult = Either String String
-
 resetEnv :: GuiMonad ()
 resetEnv = ask >>= \content ->
            get >>= \ref ->
@@ -50,7 +50,7 @@ resetEnv = ask >>= \content ->
              let entry = content ^. (gFunCommConsole . commEntry)
              let buf = content ^. (gFunCommConsole . commTBuffer)
              let tv = content ^. (gFunCommConsole . commTView)
-             printInfoMsg "Modulo cargado" buf tv 
+             printInfoMsg "Modulo cargado" buf tv
 
 
 configCommandConsole :: GuiMonad ()
@@ -61,24 +61,33 @@ configCommandConsole= ask >>= \content ->
                         let buf = content ^. (gFunCommConsole . commTBuffer)
                         let tv = content ^. (gFunCommConsole . commTView)
                         configConsoleTV tv buf
-                        do _ <- entry `on` entryActivate $ io $ do                    
+--                         forkIO (processCmd ref evIn evRes)
+--                         forkIO (showResultCmd evRes buf tv mvarShow)
+                        do _ <- entry `on` entryActivate $ io $
+                            do
                                cmdLine <- entryGetText entry
+                               forkIO (processCmd cmdLine ref >>= \res ->
+                                       (putStrLn . show) res >>
+                                       (postGUIAsync $ putResult res buf tv >>
+                                                      scrollTV buf tv))
                                entrySetText entry ""
-                               textBufferInsertLn buf (prependPrompt cmdLine ++ "\n")
-                               res <- processCmd cmdLine ref
-                               putResult res buf tv
-                               titer2 <- textBufferGetEndIter buf
-                           -- textViewScrollToIter no anda bien, por eso uso scrollToMark
-                               mark <- textBufferCreateMark buf Nothing titer2 False
-                               textViewScrollToMark tv mark 0 Nothing
-                               widgetShowAll tv
+                               printInfoMsg (prependPrompt cmdLine ++ "\n") buf tv
+                               return ()
                            return ()
 
 putResult :: EvResult -> TextBuffer -> TextView -> IO ()
-putResult (Left er) b tv = printErrorMsg er b tv
-putResult (Right e) b tv = printInfoMsg e b tv
+putResult (Left er) = printErrorMsg er
+putResult (Right e) = printInfoMsg e
 
-
+scrollTV buf tv = 
+    do
+        titer2 <- textBufferGetEndIter buf
+        -- textViewScrollToIter no anda bien, por eso uso scrollToMark
+        mark <- textBufferCreateMark buf Nothing titer2 False
+        textViewScrollToMark tv mark 0 Nothing
+        widgetShowAll tv
+                                
+-- processCmd toma un string 
 processCmd :: String -> GStateRef -> IO EvResult
 processCmd s ref = either (return . Left . show)
                           pcmd
@@ -100,30 +109,12 @@ processCmd s ref = either (return . Left . show)
                  Step -> case eExp of
                               Nothing -> return $ Left "No hay expresión cargada"
                               Just eExp' ->
-                                        putStrLn ("Expresión a evaluar =" ++ (show eExp')) >>
-                                        putStrLn ("Env  =" ++ (show eEnv)) >>
                                         return (runStateT (evalStep eExp') eEnv) >>= \res ->
-                                        putStrLn ("Resultado =" ++ (show res)) >>
                                         maybe (return $ Right $ PE.prettyShow eExp')
                                               (\(evalE,newEnv) -> 
-                                                putStrLn "por escribir referencia" >>
                                                 writeRef ref
                                                  ((<~) gFunEvalSt 
                                                    (FunEvalState (Just evalE) newEnv) st) >>
-                                                putStrLn "referencia escrita" >>
-                                                putStrLn ("Retorno = " ++ PE.prettyShow evalE) >>
                                                 return (Right $ PE.prettyShow evalE))
                                               res
-                                        
-    
--- runCmd :: TMVar String -> TMVar EvResult -> GStateRef -> IO ()
--- runCmd chan ochan r = (getCmd >>= \cmdLine ->
---                        (^. gFunEnv) <$> readRef r >>= \env ->
---                        evaluate (parserCmdCont getCmd putRes (cfg env) cmdLine) env) >>
---                       runCmd chan ochan r
---     where putRes = atomically . putTMVar ochan
---           getCmd = atomically $ takeTMVar chan
---           evaluate cmd env = runStateT (runContT cmd return) (cfg env,mempty)
---           cfg = initConfig
-
 

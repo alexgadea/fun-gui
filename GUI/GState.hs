@@ -22,9 +22,6 @@ import Control.Monad.Trans.RWS
 import Data.IORef
 import Data.Reference
 
-import Control.Concurrent
-import Control.Concurrent.STM.TMVar
-
 -- | Información sobre los items del menuBar.
 data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(mkLenses ''FunMenuBar)
@@ -37,6 +34,9 @@ $(mkLenses ''FunToolbar)
 
 data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
+
+-- Tipo para el resultado de una evaluación
+type EvResult = Either String String
 
 data FunCommConsole = FunCommConsole { _commEntry :: Entry
                                      , _commTBuffer :: TextBuffer
@@ -84,6 +84,7 @@ data FunEvalState = FunEvalState { -- expresión en el estado del evaluador:
                                  , _evalEnv :: EvalEnv
                             }
 $(mkLenses ''FunEvalState)
+
 
 -- | Tipo de mónada de lectura. LLevamos toda la info necesaria recolectada
 -- del archivo glade.
@@ -136,10 +137,11 @@ updateGState f = do
 newEvalEnv :: GStateRef -> IO EvalEnv
 newEvalEnv ref = readRef ref >>= \st ->
                  let funEnv = st ^. gFunEnv in
-                    return (getFuncs funEnv) >>=
-                    return . createEvalEnv
+                    return (getFuncs funEnv) >>= \funcs ->
+                    return (getVals funEnv) >>= \vals ->
+                    return $ createEvalEnv funcs vals
 
-initEvalEnv = createEvalEnv $ getFuncs []
+initEvalEnv = createEvalEnv (getFuncs []) (getVals [])
 
 
 updateEvalEnv :: GuiMonad ()

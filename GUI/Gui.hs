@@ -110,9 +110,10 @@ makeGState xml = do
         infoTBuf <- textViewGetBuffer infoTV
         
         configInfoConsoleTV infoTV infoTBuf
-
+{-
         commIChan <- atomically newEmptyTMVar
         commOChan <- atomically newEmptyTMVar
+        -}
         
         let funToolbarST    = FunToolbar symFrameB axFrameB
         let funMainPanedST  = FunMainPaned mainPaned

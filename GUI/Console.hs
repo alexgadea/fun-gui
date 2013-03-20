@@ -47,3 +47,4 @@ printMsg msg tagname infoBuf infoTV  =
             textBufferApplyTagByName infoBuf tagname start end
             widgetShowAll infoTV
         
+        

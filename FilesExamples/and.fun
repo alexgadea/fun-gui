@@ -29,7 +29,7 @@ let derivation and by recursion on xs
                     ≡ { Proyectar el elemento inicial }
                                 y ∧ 〈∀ i : 0 < i ∧ i < succ(#ys) : (y ▹ ys).i〉
                     ≡ { Relación entre < y ≤ }
-                                y ∧ 〈∀ i : succ i ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
+                                y ∧ 〈∀ i : succ 0 ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
                     ≡ { Reindizado Para Todo }
                                 y ∧ 〈∀ i : 0 ≤ i ∧ i < #ys : (y ▹ ys).(succ i)〉
                     ≡ { Proyectar el elemento (i+1) }
@@ -37,3 +37,13 @@ let derivation and by recursion on xs
                     ≡ { spec and }
                                 y ∧ and@ys
 end
+
+let val 
+    x = False
+end
+
+let val
+    y = True
+end
+
+

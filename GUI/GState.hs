@@ -76,6 +76,7 @@ $(mkLenses ''FunSymList)
 data FunAxList = FunAxList { _gAxFrame    :: Frame 
                            , _gAxTreeView :: TreeView
                            , _gAxRel      :: ComboBox
+                           , _gAxLabelExpr :: Label
                            }
 $(mkLenses ''FunAxList)
 

@@ -3,6 +3,7 @@ module GUI.EvalConsole where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
+
 import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
 import Control.Monad.Trans.State (runStateT)
@@ -11,7 +12,6 @@ import Control.Arrow
 import Control.Applicative((<$>))
 
 import Control.Concurrent
-import Control.Concurrent.STM
 
 import Lens.Family
 
@@ -29,12 +29,17 @@ import GUI.Config
 import GUI.SymbolList
 import GUI.Utils
 import GUI.Console
+import GUI.EvalConsole.Parser
+import GUI.EvalConsole.EvalComm
+
+import Control.Concurrent(forkIO)
 
 import Fun.Environment
-import Fun.Eval.Interact
 -- import Fun.Eval.Proof
-import Fun.Eval.Parser
-import Fun.Eval.EvalMonad
+import Fun.Eval.Eval
+
+
+import qualified Equ.PreExpr as PE
 
 prependPrompt = ("fun> "++)
 
@@ -45,11 +50,7 @@ resetEnv = ask >>= \content ->
              let entry = content ^. (gFunCommConsole . commEntry)
              let buf = content ^. (gFunCommConsole . commTBuffer)
              let tv = content ^. (gFunCommConsole . commTView)
-             let chan = content ^. (gFunCommConsole . commChan)
-             let repChan = content ^. (gFunCommConsole . commRepChan)
-             () <- atomically (putTMVar chan "reset")
-             _ <- atomically (takeTMVar repChan)
-             printInfoMsg "Modulo cargado" buf tv 
+             printInfoMsg "Modulo cargado" buf tv
 
 
 configCommandConsole :: GuiMonad ()
@@ -59,36 +60,61 @@ configCommandConsole= ask >>= \content ->
                         let entry = content ^. (gFunCommConsole . commEntry)
                         let buf = content ^. (gFunCommConsole . commTBuffer)
                         let tv = content ^. (gFunCommConsole . commTView)
-                        let chan = content ^. (gFunCommConsole . commChan)
-                        let repChan = content ^. (gFunCommConsole . commRepChan)
                         configConsoleTV tv buf
-                        forkIO $ runCmd chan repChan ref
-                        do _ <- entry `on` entryActivate $ io $ do                    
+--                         forkIO (processCmd ref evIn evRes)
+--                         forkIO (showResultCmd evRes buf tv mvarShow)
+                        do _ <- entry `on` entryActivate $ io $
+                            do
                                cmdLine <- entryGetText entry
+                               forkIO (processCmd cmdLine ref >>= \res ->
+                                       (putStrLn . show) res >>
+                                       (postGUIAsync $ putResult res buf tv >>
+                                                      scrollTV buf tv))
                                entrySetText entry ""
-                               atomically $ putTMVar chan cmdLine
-                               res <- atomically $ takeTMVar repChan
-                               textBufferInsertLn buf (prependPrompt cmdLine ++ "\n")
-                               putResult res buf tv
-                               titer2 <- textBufferGetEndIter buf
-                           -- textViewScrollToIter no anda bien, por eso uso scrollToMark
-                               mark <- textBufferCreateMark buf Nothing titer2 False
-                               textViewScrollToMark tv mark 0 Nothing
-                               widgetShowAll tv
+                               printInfoMsg (prependPrompt cmdLine ++ "\n") buf tv
+                               return ()
                            return ()
 
 putResult :: EvResult -> TextBuffer -> TextView -> IO ()
-putResult (EvErr e) = printErrorMsg (show e) 
-putResult (EvOk r) = printInfoMsg r 
+putResult (Left er) = printErrorMsg er
+putResult (Right e) = printInfoMsg e
 
-runCmd :: TMVar String -> TMVar EvResult -> GStateRef -> IO ()
-runCmd chan ochan r = (getCmd >>= \cmdLine ->
-                       (^. gFunEnv) <$> readRef r >>= \env ->
-                       evaluate (parserCmdCont getCmd putRes (cfg env) cmdLine) env) >>
-                      runCmd chan ochan r
-    where putRes = atomically . putTMVar ochan
-          getCmd = atomically $ takeTMVar chan
-          evaluate cmd env = runStateT (runContT cmd return) (cfg env,mempty)
-          cfg = initConfig
-
+scrollTV buf tv = 
+    do
+        titer2 <- textBufferGetEndIter buf
+        -- textViewScrollToIter no anda bien, por eso uso scrollToMark
+        mark <- textBufferCreateMark buf Nothing titer2 False
+        textViewScrollToMark tv mark 0 Nothing
+        widgetShowAll tv
+                                
+-- processCmd toma un string 
+processCmd :: String -> GStateRef -> IO EvResult
+processCmd s ref = either (return . Left . show)
+                          pcmd
+                          (parseFromString s)
+    where pcmd c = 
+            readRef ref >>= \st ->
+            let eExp = st ^. (gFunEvalSt . evalExpr)
+                eEnv = st ^. (gFunEvalSt . evalEnv) in
+            case c of
+                 Load e -> newEvalEnv ref >>= \evEnv ->
+                           writeRef ref 
+                            ((<~) gFunEvalSt (FunEvalState (Just e) evEnv) st) >>
+                           return (Right "Expresión cargada")
+                 Eval e -> newEvalEnv ref >>= \evEnv ->
+                           writeRef ref
+                            ((<~) gFunEvalSt (FunEvalState (Just e) evEnv) st) >>
+                           return (eval evEnv e) >>=
+                           (return . Right . PE.prettyShow)
+                 Step -> case eExp of
+                              Nothing -> return $ Left "No hay expresión cargada"
+                              Just eExp' ->
+                                        return (runStateT (evalStep eExp') eEnv) >>= \res ->
+                                        maybe (return $ Right $ PE.prettyShow eExp')
+                                              (\(evalE,newEnv) -> 
+                                                writeRef ref
+                                                 ((<~) gFunEvalSt 
+                                                   (FunEvalState (Just evalE) newEnv) st) >>
+                                                return (Right $ PE.prettyShow evalE))
+                                              res
 

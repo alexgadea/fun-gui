@@ -87,8 +87,6 @@ checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st ->
     ask >>= \content ->
-    let chan = content ^. (gFunCommConsole . commChan) in
-    let repChan = content ^. (gFunCommConsole . commRepChan) in
     case st ^. gFunEditBook of
     Nothing -> return ()
     Just editBook -> do
@@ -107,7 +105,8 @@ checkSelectFile =
                                 resetEnv >>
                                 updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env)))
+        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env))) >>
+                           updateEvalEnv
 
 -- | Función para cargar un archivo.
 openFile :: GuiMonad ()

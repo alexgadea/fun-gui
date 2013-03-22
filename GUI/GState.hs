@@ -10,6 +10,8 @@ import Fun.Parser
 import Fun.Module
 import Fun.Eval.Eval(EvalEnv,createEvalEnv)
 
+import GUI.EvalConsole.EvalComm
+
 import qualified Equ.PreExpr as Equ
 
 import Graphics.UI.Gtk hiding (get)
@@ -21,6 +23,7 @@ import Control.Monad.Trans.State hiding (get,put)
 import Control.Monad.Trans.RWS
 import Data.IORef
 import Data.Reference
+import qualified Data.Strict.Either as SEither
 
 -- | Información sobre los items del menuBar.
 data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
@@ -36,7 +39,7 @@ data FunMainPaned = FunMainPaned { _mpaned :: HPaned }
 $(mkLenses ''FunMainPaned)
 
 -- Tipo para el resultado de una evaluación
-type EvResult = Either String String
+type EvResult = SEither.Either String String
 
 data FunCommConsole = FunCommConsole { _commEntry :: Entry
                                      , _commTBuffer :: TextBuffer
@@ -83,6 +86,7 @@ $(mkLenses ''FunAxList)
 data FunEvalState = FunEvalState { -- expresión en el estado del evaluador:
                                    _evalExpr :: Maybe Equ.PreExpr
                                  , _evalEnv :: EvalEnv
+                                 , _evalLComm :: Maybe EvalComm
                             }
 $(mkLenses ''FunEvalState)
 
@@ -146,5 +150,7 @@ initEvalEnv = createEvalEnv (getFuncs []) (getVals [])
 
 
 updateEvalEnv :: GuiMonad ()
-updateEvalEnv = get >>= liftIO . newEvalEnv >>= \eEnv ->
-                updateGState ((<~) gFunEvalSt (FunEvalState Nothing eEnv))
+updateEvalEnv = getGState >>= \st ->
+    let lcomm = st ^. (gFunEvalSt . evalLComm) in
+        get >>= liftIO . newEvalEnv >>= \eEnv ->
+        updateGState ((<~) gFunEvalSt (FunEvalState Nothing eEnv lcomm))

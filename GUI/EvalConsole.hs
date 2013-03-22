@@ -71,7 +71,7 @@ configCommandConsole= ask >>= \content ->
                                        (postGUIAsync $ putResult res buf tv >>
                                                       scrollTV buf tv))
                                entrySetText entry ""
-                               printInfoMsg (prependPrompt cmdLine ++ "\n") buf tv
+                               printInfoMsg (prependPrompt cmdLine) buf tv
                                return ()
                            return ()
 
@@ -101,20 +101,34 @@ processCmd s ref = either (return . Left . show)
                            writeRef ref 
                             ((<~) gFunEvalSt (FunEvalState (Just e) evEnv) st) >>
                            return (Right "Expresión cargada")
-                 Eval e -> newEvalEnv ref >>= \evEnv ->
+                 Eval e -> processEval e ref st eval PE.prettyShow
+                 Step -> processStep eExp eEnv st evalStep PE.prettyShow id
+                 StepTrace -> processStep eExp eEnv st evalStepTrace
+                                   (\(e,rulename) -> (maybe "" ((flip (++) "\n") . PE.prettyShow) eExp)++
+                                                     "~~>\t["++rulename++"]\n"++
+                                                     PE.prettyShow e)
+                                   fst
+                 EvalTrace e -> processEval e ref st evalTrace 
+                                  (((++) (PE.prettyShow e)) . showTrace . snd)
+                                   
+          processStep eExp eEnv st evalF fshow fgetE = 
+              case eExp of
+                  Nothing -> return $ Left "No hay expresión cargada"
+                  Just eExp' -> return (runStateT (evalF eExp') eEnv) >>= \res ->
+                                maybe (return $ Right $ PE.prettyShow eExp')
+                                      (\(evalE,newEnv) -> writeRef ref
+                                         ((<~) gFunEvalSt (FunEvalState 
+                                                        (Just $ fgetE evalE) newEnv) st) >>
+                                                return (Right $ fshow evalE))
+                                      res
+          processEval e ref st feval fshow =
+                           newEvalEnv ref >>= \evEnv ->
                            writeRef ref
                             ((<~) gFunEvalSt (FunEvalState (Just e) evEnv) st) >>
-                           return (eval evEnv e) >>=
-                           (return . Right . PE.prettyShow)
-                 Step -> case eExp of
-                              Nothing -> return $ Left "No hay expresión cargada"
-                              Just eExp' ->
-                                        return (runStateT (evalStep eExp') eEnv) >>= \res ->
-                                        maybe (return $ Right $ PE.prettyShow eExp')
-                                              (\(evalE,newEnv) -> 
-                                                writeRef ref
-                                                 ((<~) gFunEvalSt 
-                                                   (FunEvalState (Just evalE) newEnv) st) >>
-                                                return (Right $ PE.prettyShow evalE))
-                                              res
-
+                           return (feval evEnv e) >>=
+                           (return . Right . fshow)
+                           
+          showTrace ((rulename,e):ls) = 
+              "\n~~>\t["++rulename++"]\n" ++ (PE.prettyShow e) ++ showTrace ls
+          showTrace [] = "\n"
+                           

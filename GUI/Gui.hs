@@ -94,6 +94,7 @@ makeGState xml = do
         axTV     <- xmlGetWidget xml castToTreeView "axiomList"
         axRel    <- xmlGetWidget xml castToComboBox "comboAxioms"
         axFrameB <- xmlGetWidget xml castToToggleToolButton "AxiomFrameButton"
+        axLabExpr <- xmlGetWidget xml castToLabel "axiomExpr"
         
         window <- xmlGetWidget xml castToWindow "mainWindow"
         
@@ -119,7 +120,7 @@ makeGState xml = do
         let funMainPanedST  = FunMainPaned mainPaned
         let funInfoPanedST  = FunInfoPaned declFrame loadedMod
         let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
-        let funAxListST     = FunAxList axFrame axTV axRel
+        let funAxListST     = FunAxList axFrame axTV axRel axLabExpr
         let funCommConsole  = FunCommConsole commEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned

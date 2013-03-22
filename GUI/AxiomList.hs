@@ -21,7 +21,7 @@ import GUI.GState
 import GUI.Utils
 import GUI.EditBook
 
-type AxiomItem = String
+type AxiomItem = (String,Maybe Basic)
 
 -- | Genera el TreeStore con la lista de axiomas.
 listAxioms :: IO (TreeStore AxiomItem)
@@ -31,10 +31,10 @@ listAxioms = treeStoreNew $ forest ET.axiomGroup ++ forest eval
         eval = [(pack "Aritmética", [Evaluate])]
 
         forest ::  (Truth t, Show t) => ET.Grouped t -> Forest AxiomItem
-        forest = ET.toForest unpack addItem
+        forest = ET.toForest (\t -> (unpack t,Nothing)) addItem
 
         addItem :: (Truth t, Show t) => t -> AxiomItem
-        addItem = unpack . truthName
+        addItem t = (unpack $ truthName t,Just $ truthBasic t)
 
 -- | Configuración del botón para activar/desactivar la lista de axiomas.
 configAxFrameButton :: GuiMonad ()
@@ -76,7 +76,7 @@ setupAxiomList tv list =
     treeViewSetModel tv list >>
     cellRendererTextNew >>= \renderer ->
     cellLayoutPackStart col renderer False >>
-    cellLayoutSetAttributes col renderer list (\ind -> [ cellText := ind ]) >>
+    cellLayoutSetAttributes col renderer list (\ind -> [ cellText := fst ind ]) >>
     treeViewAppendColumn tv col >>
     return ()
 
@@ -88,20 +88,19 @@ eventsAxiomList tv list =
             treeSelectionUnselectAll tree >>
             treeViewSetModel tv list >> widgetShowAll tv >> return tree) 
             >>= \tree -> ask >>= \content -> get >>= \st ->
-            io (onSelectionChanged tree (eval (oneSelection list tree) content st))
-            >> return ()
+            io (onSelectionChanged tree (eval (showAxiom list tree) content st))
+            >> 
+            io (tv `on` rowActivated $ \path _ -> eval (putOnText list path) content st) >>
+            return ()
     where
         eval action content st = evalRWST action content st >> return ()
 
--- | Configuración de un evento en un elemento particular del treeview de 
--- axiomas.
-oneSelection :: TreeStore AxiomItem -> TreeSelection -> GuiMonad ()
-oneSelection list tree = 
-            io (treeSelectionGetSelectedRows tree) >>= \sel ->
-            unless (null sel) $ return (head sel) >>= \h ->
-            unless (length h == 1) $ getGState >>= \st ->
+
+putOnText :: TreeStore AxiomItem -> TreePath -> GuiMonad ()
+putOnText list path = 
+        unless (length path == 1) $ getGState >>= \st ->
             return (st ^. gFunEditBook) >>= \mEditBook ->
-            maybe (return ()) (configSelection h) mEditBook
+            maybe (return ()) (configSelection path) mEditBook
     where
         justification :: [Relation] -> Int -> String -> String
         justification rs i j = (unpack $ relRepr (rs!!i)) ++ " { " ++ j ++ " }"
@@ -109,7 +108,7 @@ oneSelection list tree =
         configSelection path editBook = ask >>= \content -> 
                 return (content ^. (gFunAxiomList . gAxRel)) >>= \axRel ->
                 getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
-                io (treeStoreGetValue list path) >>= \ax ->
+                io (treeStoreGetValue list path) >>= \(ax,_) ->
                 io (relationListStore) >>= \lsrel ->
                 io (listStoreToList lsrel) >>= \l ->
                 io (comboBoxGetActive axRel) >>= \i ->
@@ -119,6 +118,15 @@ oneSelection list tree =
                 buf <- textViewGetBuffer tv
                 textBufferInsertAtCursor buf repr
                 widgetGrabFocus tv
+        
+showAxiom :: TreeStore AxiomItem -> TreeSelection -> GuiMonad ()
+showAxiom list tree = io (treeSelectionGetSelectedRows tree) >>= \sel ->
+            unless (null sel) $ return (head sel) >>= \h ->
+            unless (length h == 1) $ 
+            ask >>= \content -> 
+            return (content ^. (gFunAxiomList . gAxLabelExpr)) >>= \lab ->
+            io (treeStoreGetValue list h >>= \(_,Just basic) ->
+            labelSetText lab (show $ truthExpr basic))
 
 -- | ListStore de símbolos de relación.
 relationListStore :: IO (ListStore Relation)

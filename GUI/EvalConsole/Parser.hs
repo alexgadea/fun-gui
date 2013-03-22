@@ -42,12 +42,24 @@ parseEval = spaces >>
             spaces >>
             return (Eval e)
             
-            
+parseStepTrace :: ParserCmd EvalComm
+parseStepTrace = string "steptrace" >>
+                 return StepTrace
+
+parseEvalTrace :: ParserCmd EvalComm
+parseEvalTrace = string "evaltrace" >>
+                 spaces >>
+                 parsePreExpr >>= \e ->
+                 spaces >>
+                 return (EvalTrace e)
+                 
 parserCmd :: ParserCmd EvalComm
 parserCmd =     (try parseLoad)
+            <|> (try parseStepTrace)
             <|> (try parseStep)
+            <|> (try parseEvalTrace)
             <|> parseEval
-            <?> "Comandos válidos: <expr> | load <expr> | step"
+            <?> "Comandos válidos: <expr> | load <expr> | step | steptrace | evaltrace <expr>"
             
             
 -- | Función principal de parseo desde String

@@ -64,6 +64,9 @@ parserCmd =     (try parseLoad)
             
 -- | Función principal de parseo desde String
 parseFromString :: String -> Either ParseError EvalComm
-parseFromString = runParser parserCmd (initPExprState UnusedParen) ""
+parseFromString s = 
+    if s==""
+       then return LastComm
+       else runParser parserCmd (initPExprState UnusedParen) "" s
 
             

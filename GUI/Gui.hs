@@ -126,7 +126,7 @@ makeGState xml = do
         let funEditorPaned  = FunEditorPaned edPaned
         
         
-        gState <- newRef $ GState [] Nothing (FunEvalState Nothing initEvalEnv)
+        gState <- newRef $ GState [] Nothing (FunEvalState Nothing initEvalEnv Nothing)
         let gReader = GReader window 
                               funToolbarST
                               funMainPanedST

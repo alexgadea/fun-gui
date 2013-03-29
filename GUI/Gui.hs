@@ -2,7 +2,6 @@
 module Main where
 
 import Graphics.UI.Gtk hiding (get)
-import Graphics.UI.Gtk.Glade
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State hiding (get,put)
@@ -35,7 +34,8 @@ main :: IO ()
 main = do 
     initGUI
     
-    xml <- fromMaybe (error msgErrGladeNotFound) <$> xmlNew "GUI/fun.glade"
+    xml <- builderNew
+    builderAddFromFile xml "GUI/fun.ui"
     
     (gReader,gState) <- makeGState xml
 
@@ -51,14 +51,14 @@ main = do
     mainGUI
     
 -- | Configura los botones de insert de declaraciones del menu.
-configInsertMenuItems :: GladeXML -> GuiMonad ()
+configInsertMenuItems :: Builder -> GuiMonad ()
 configInsertMenuItems xml = ask >>= \content -> get >>= \st -> 
             io $ do
-            specItem <- xmlGetWidget xml castToImageMenuItem "insertSpecItem"
-            funItem  <- xmlGetWidget xml castToImageMenuItem "insertFunItem"
-            valItem  <- xmlGetWidget xml castToImageMenuItem "insertValItem"
+            specItem <- builderGetObject xml castToImageMenuItem "insertSpecItem"
+            funItem  <- builderGetObject xml castToImageMenuItem "insertFunItem"
+            valItem  <- builderGetObject xml castToImageMenuItem "insertValItem"
             -- falta implementar thmItem
-            thmItem  <- xmlGetWidget xml castToImageMenuItem "insertThmItem"
+            thmItem  <- builderGetObject xml castToImageMenuItem "insertThmItem"
             
             onActivateLeaf specItem (createRun IDialogs.Spec content st)
             onActivateLeaf funItem  (createRun IDialogs.Fun  content st)
@@ -74,35 +74,35 @@ configInsertMenuItems xml = ask >>= \content -> get >>= \st ->
                                 return ()
 
 -- | Genera el estado inicial de la mónada.
-makeGState :: GladeXML -> IO (GReader,GStateRef) 
+makeGState :: Builder -> IO (GReader,GStateRef) 
 makeGState xml = do
         
-        symFrameB <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
+        symFrameB <- builderGetObject xml castToToggleToolButton "symFrameButton"
         
-        mainPaned <- xmlGetWidget xml castToHPaned "mainPaned"
+        mainPaned <- builderGetObject xml castToHPaned "mainPaned"
         
-        declFrame  <- xmlGetWidget xml castToFrame "declFrame"
-        loadedMod  <- xmlGetWidget xml castToLabel "labelLoadedModule"
+        declFrame  <- builderGetObject xml castToFrame "declFrame"
+        loadedMod  <- builderGetObject xml castToLabel "labelLoadedModule"
         
-        symFrame   <- xmlGetWidget xml castToFrame "symFrame"
-        goLeftBox  <- xmlGetWidget xml castToHBox "symGoLeftBox"
-        scrollW    <- xmlGetWidget xml castToScrolledWindow "swSymbolList"
-        symIV      <- xmlGetWidget xml castToIconView "symbolList"
-        goRightBox <- xmlGetWidget xml castToHBox "symGoRightBox"
+        symFrame   <- builderGetObject xml castToFrame "symFrame"
+        goLeftBox  <- builderGetObject xml castToHBox "symGoLeftBox"
+        scrollW    <- builderGetObject xml castToScrolledWindow "swSymbolList"
+        symIV      <- builderGetObject xml castToIconView "symbolList"
+        goRightBox <- builderGetObject xml castToHBox "symGoRightBox"
         
-        axFrame  <- xmlGetWidget xml castToFrame "axiomFrame"
-        axTV     <- xmlGetWidget xml castToTreeView "axiomList"
-        axRel    <- xmlGetWidget xml castToComboBox "comboAxioms"
-        axFrameB <- xmlGetWidget xml castToToggleToolButton "AxiomFrameButton"
-        axLabExpr <- xmlGetWidget xml castToLabel "axiomExpr"
+        axFrame  <- builderGetObject xml castToFrame "axiomFrame"
+        axTV     <- builderGetObject xml castToTreeView "axiomList"
+        axRel    <- builderGetObject xml castToComboBox "comboAxioms"
+        axFrameB <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
+        axLabExpr <- builderGetObject xml castToLabel "axiomExpr"
         
-        window <- xmlGetWidget xml castToWindow "mainWindow"
+        window <- builderGetObject xml castToWindow "mainWindow"
         
-        edPaned <- xmlGetWidget xml castToVPaned "editorPaned"
-        commTV <- xmlGetWidget xml castToTextView "commandTView"
-        commEntry <- xmlGetWidget xml castToEntry "commandEntry"
-        funStatusbar <- xmlGetWidget xml castToStatusbar "statusBar"
-        infoTV <- xmlGetWidget xml castToTextView "infoConsoleTView"
+        edPaned <- builderGetObject xml castToVPaned "editorPaned"
+        commTV <- builderGetObject xml castToTextView "commandTView"
+        commEntry <- builderGetObject xml castToEntry "commandEntry"
+        funStatusbar <- builderGetObject xml castToStatusbar "statusBar"
+        infoTV <- builderGetObject xml castToTextView "infoConsoleTView"
         
         panedSetPosition edPaned 400
         
@@ -140,18 +140,18 @@ makeGState xml = do
         return (gReader,gState)
 
 -- | Configura los botones de la barra, tales como abrir, cerrar, etc...
-configMenuBarButtons :: GladeXML -> GuiMonad ()
+configMenuBarButtons :: Builder -> GuiMonad ()
 configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
         io $ do
         
-        newFButton    <- xmlGetWidget xml castToToolButton "newFileButton"
-        openFButton   <- xmlGetWidget xml castToToolButton "openFileButton"
-        saveFButton   <- xmlGetWidget xml castToToolButton "saveFileButton"
-        saveAtFButton <- xmlGetWidget xml castToToolButton "saveFileAtButton"
-        closeFButton  <- xmlGetWidget xml castToToolButton "closeFileButton"
-        checkMButton  <- xmlGetWidget xml castToToolButton "checkModuleButton"
-        symFButton    <- xmlGetWidget xml castToToggleToolButton "symFrameButton"
-        axFButton     <- xmlGetWidget xml castToToggleToolButton "AxiomFrameButton"
+        newFButton    <- builderGetObject xml castToToolButton "newFileButton"
+        openFButton   <- builderGetObject xml castToToolButton "openFileButton"
+        saveFButton   <- builderGetObject xml castToToolButton "saveFileButton"
+        saveAtFButton <- builderGetObject xml castToToolButton "saveFileAtButton"
+        closeFButton  <- builderGetObject xml castToToolButton "closeFileButton"
+        checkMButton  <- builderGetObject xml castToToolButton "checkModuleButton"
+        symFButton    <- builderGetObject xml castToToggleToolButton "symFrameButton"
+        axFButton     <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
         
         onToolButtonClicked newFButton    (eval createNewFile content st)
         onToolButtonClicked openFButton   (eval openFile content st)
@@ -165,18 +165,18 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
         return ()
 
 -- | Configura los botones del menude archivo.
-configToolBarButtons :: GladeXML -> GuiMonad ()
+configToolBarButtons :: Builder -> GuiMonad ()
 configToolBarButtons xml = ask >>= \content -> get >>= \st ->
             io $ do
             let window = content ^. gFunWindow
-            newB  <- xmlGetWidget xml castToMenuItem "newButton"
-            openB <- xmlGetWidget xml castToMenuItem "openButton"
-            saveB  <- xmlGetWidget xml castToMenuItem "saveButton"
-            saveAsB <- xmlGetWidget xml castToMenuItem "saveAsButton"
-            closeB  <- xmlGetWidget xml castToMenuItem "closeButton"
-            quitB  <- xmlGetWidget xml castToMenuItem "quitButton"
+            newB  <- builderGetObject xml castToMenuItem "newButton"
+            openB <- builderGetObject xml castToMenuItem "openButton"
+            saveB  <- builderGetObject xml castToMenuItem "saveButton"
+            saveAsB <- builderGetObject xml castToMenuItem "saveAsButton"
+            closeB  <- builderGetObject xml castToMenuItem "closeButton"
+            quitB  <- builderGetObject xml castToMenuItem "quitButton"
             
-            checkB <- xmlGetWidget xml castToMenuItem "checkButton"
+            checkB <- builderGetObject xml castToMenuItem "checkButton"
             
             onActivateLeaf newB   $ eval createNewFile    content st
             onActivateLeaf openB   $ eval openFile    content st

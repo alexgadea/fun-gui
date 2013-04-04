@@ -1,5 +1,5 @@
 -- | Interfaz gráfica de Fun.
-module Main where
+module GUI.Gui where
 
 import Graphics.UI.Gtk hiding (get)
 
@@ -30,26 +30,20 @@ import GUI.InfoConsole
 import GUI.Utils
 import qualified GUI.InsertDialogs as IDialogs
 
-main :: IO ()
-main = do 
-    initGUI
-    
-    xml <- builderNew
-    builderAddFromFile xml "GUI/fun.ui"
-    
-    (gReader,gState) <- makeGState xml
+mainFunGui :: Builder -> IO (GReader, GStateRef)
+mainFunGui xml = do 
+                (gReader,gState) <- makeGState xml
 
-    runRWST (do configWindow
-                configMenuBarButtons  xml
-                configInsertMenuItems xml 
-                configToolBarButtons  xml
-                configCommandConsole
-                configSymbolList
-                configAxiomList
-            ) gReader gState
+                (_,stRef,_) <- runRWST (do  configWindow
+                                            configMenuBarButtons  xml
+                                            configInsertMenuItems xml 
+                                            configToolBarButtons  xml
+                                            configCommandConsole
+                                            configSymbolList
+                                            configAxiomList
+                                        ) gReader gState
+                return (gReader,stRef)
 
-    mainGUI
-    
 -- | Configura los botones de insert de declaraciones del menu.
 configInsertMenuItems :: Builder -> GuiMonad ()
 configInsertMenuItems xml = ask >>= \content -> get >>= \st -> 

@@ -25,13 +25,19 @@ begin proof  [~ especificacion : sum@xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i
             where
 basic 
 [] ->     sum@[]
-              = { prop truchada }
+              = { especificacion}
+              〈 ∑ i : 0 ≤ i ∧ i < #[] : [].i 〉
+              = { Definición de Longitud }
+              〈 ∑ i : 0 ≤ i ∧ i < 0 : [].i 〉
+              = { Intervalo Vacío }
+              〈 ∑ i : False : [].i 〉
+              = { Rango Vacío Sumatoria }
               0
 
 induction y ▹ ys with hypind -> sum@(y ▹ ys)
                                                                     = { especificacion }
                                                                     〈 ∑ i : 0 ≤ i ∧ i < #(y ▹ ys) : (y ▹ ys).i〉
-                                                                    = { Longitud de lista no vacía }
+                                                                    = { Definición de Longitud }
                                                                     〈 ∑ i : 0 ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
                                                                     = { Aritmética en Intervalo }
                                                                     〈 ∑ i : i = 0 ∨ (0 < i ∧ i < succ (#ys)) : (y ▹ ys).i〉
@@ -39,13 +45,13 @@ induction y ▹ ys with hypind -> sum@(y ▹ ys)
                                                                     〈 ∑ i : i = 0 : (y ▹ ys).i 〉 + 〈 ∑ i : 0 < i ∧ i < succ (#ys) : (y ▹ ys).i 〉
                                                                     = { Rango Unitario Sumatoria }
                                                                     ((y ▹ ys).0) + 〈 ∑ i : 0 < i ∧ i < succ (#ys) : (y ▹ ys).i〉
-                                                                    = { Proyectar el elemento inicial }
+                                                                    = { Definición de Indexar }
                                                                     y + 〈 ∑ i : 0 < i ∧ i < succ (#ys) : (y ▹ ys).i〉
                                                                     = { Relación entre < y ≤ }
                                                                     y + 〈 ∑ i : succ 0 ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
                                                                     = { Reindizado Sumatoria }
                                                                     y + 〈 ∑ i : 0 ≤ i ∧ i < #ys : (y ▹ ys).(succ i)〉
-                                                                    = { Proyectar el elemento (i+1) }
+                                                                    = { Definición de Indexar }
                                                                     y + 〈 ∑ i : 0 ≤ i ∧ i < #ys : ys.i〉
                                                                     = { especificacion }
                                                                     y + (sum@ys)

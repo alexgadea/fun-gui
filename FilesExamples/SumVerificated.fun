@@ -1,4 +1,4 @@
-module Sum
+module SumVerificated
 
 let spec 
     sum xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉 

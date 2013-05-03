@@ -39,11 +39,13 @@ let derivation and by recursion on xs
 end
 
 let val 
-    x = False
+    p = False
 end
 
 let val
-    y = True
+    q = True
 end
 
-
+let val
+    r = True
+end

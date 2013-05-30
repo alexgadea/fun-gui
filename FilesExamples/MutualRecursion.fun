@@ -6,7 +6,7 @@ let fun
                           else impar@(pred x)
             fi
 end
-sd
+
 let fun
     impar x =
             if x = 0 then False

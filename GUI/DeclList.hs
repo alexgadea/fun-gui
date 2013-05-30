@@ -103,34 +103,34 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
     where
         newDeclSpec :: Module -> Forest DeclItem
         newDeclSpec m = toForestDecl ( "Especificaciones"
-                                     , specs $ validDecls m
+                                     , _specs $ validDecls m
                                      , inSpecs $ decls $ invalidDecls  m
                                      )
         newDeclFunc :: Module -> Forest DeclItem
         newDeclFunc m = toForestDecl ( "Functions"
-                                     , functions $ validDecls m
+                                     , _functions $ validDecls m
                                      , inFunctions $ decls $ invalidDecls m
                                      )
         newDeclThm :: Module -> Forest DeclItem
         newDeclThm m = toForestDecl ( "Teoremas"
-                                    , theorems $ validDecls m
+                                    , _theorems $ validDecls m
                                     , inTheorems $ decls $ invalidDecls m
                                     )
         newDeclVal :: Module -> Forest DeclItem
         newDeclVal m = toForestDecl ( "Valores"
-                                    , vals $ validDecls m
+                                    , _vals $ validDecls m
                                     , inVals $ decls $ invalidDecls m
                                     )
         newDeclProps :: Module -> Forest DeclItem
         newDeclProps m = toForestDecl ( "Proposiciones"
-                                    , props $ validDecls m
+                                    , _props $ validDecls m
                                     , inProps $ decls $ invalidDecls m
                                     )
                                     
                                     
         newDeclDer :: Module -> Forest DeclItem
         newDeclDer m = toForestDer  ( "Derivaciones"
-                                    , derivs $ validDecls m
+                                    , _derivs $ validDecls m
                                     , inDerivs $ decls $ invalidDecls m
                                     )
         newVerif :: Module -> Forest DeclItem

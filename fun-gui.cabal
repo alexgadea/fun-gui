@@ -17,31 +17,6 @@ Source-repository this
     Location: https://github.com/alexgadea/fun-gui
     Branch:   master
 
-Library
-  Build-depends:       base, containers >= 0.4, reference >= 0.1, 
-                         text >= 0.11.1.5, glade >= 0.12.1, gtk >= 0.12.1, 
-                         equ >= 0.2, bytestring >= 0.9.1.10, cereal >= 0.3.3.0,
-                         glib >= 0.12.1, filepath >= 1.2.0.0, strict >= 0.3.2,
-                         pango >= 0.12.1, random >= 1.0.0.3,
-                         transformers >= 0.2.2.0, lens-family-core, lens-family-th, fun,
-                         utf8-string >= 0.3, MissingH, lens-family-th, gtksourceview2,
-                         parsec >= 3, stm
-  Exposed-Modules: GUI.Gui
-                 , GUI.GState
-  Other-modules:   GUI.EvalConsole.EvalComm
-                 , GUI.EvalConsole.Parser
-                 , GUI.AxiomList
-                 , GUI.Config
-                 , GUI.Console
-                 , GUI.DeclList
-                 , GUI.EditBook
-                 , GUI.EvalConsole
-                 , GUI.File
-                 , GUI.InfoConsole
-                 , GUI.InsertDialogs
-                 , GUI.SymbolList
-                 , GUI.Utils
-
 Executable fun-gui
     buildable: True
     HS-Source-Dirs: .

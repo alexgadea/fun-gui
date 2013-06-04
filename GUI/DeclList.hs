@@ -99,44 +99,44 @@ toForestDer (dt,ds,ids) =
             ]
 
 toForestEnv :: Environment -> Forest DeclItem
-toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ modName m) (newDecls m))
+toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ m ^. modName ) (newDecls m))
     where
         newDeclSpec :: Module -> Forest DeclItem
         newDeclSpec m = toForestDecl ( "Especificaciones"
-                                     , _specs $ validDecls m
-                                     , inSpecs $ decls $ invalidDecls  m
+                                     , _specs $ m ^. validDecls 
+                                     , inSpecs $ decls $ _invalidDecls  m
                                      )
         newDeclFunc :: Module -> Forest DeclItem
         newDeclFunc m = toForestDecl ( "Functions"
-                                     , _functions $ validDecls m
-                                     , inFunctions $ decls $ invalidDecls m
+                                     , _functions $ _validDecls m
+                                     , inFunctions $ decls $ _invalidDecls m
                                      )
         newDeclThm :: Module -> Forest DeclItem
         newDeclThm m = toForestDecl ( "Teoremas"
-                                    , _theorems $ validDecls m
-                                    , inTheorems $ decls $ invalidDecls m
+                                    , _theorems $ _validDecls m
+                                    , inTheorems $ decls $ _invalidDecls m
                                     )
         newDeclVal :: Module -> Forest DeclItem
         newDeclVal m = toForestDecl ( "Valores"
-                                    , _vals $ validDecls m
-                                    , inVals $ decls $ invalidDecls m
+                                    , _vals $ _validDecls m
+                                    , inVals $ decls $ _invalidDecls m
                                     )
         newDeclProps :: Module -> Forest DeclItem
         newDeclProps m = toForestDecl ( "Proposiciones"
-                                    , _props $ validDecls m
-                                    , inProps $ decls $ invalidDecls m
+                                    , _props $ _validDecls m
+                                    , inProps $ decls $ _invalidDecls m
                                     )
                                     
                                     
         newDeclDer :: Module -> Forest DeclItem
         newDeclDer m = toForestDer  ( "Derivaciones"
-                                    , _derivs $ validDecls m
-                                    , inDerivs $ decls $ invalidDecls m
+                                    , _derivs $ _validDecls m
+                                    , inDerivs $ decls $ _invalidDecls m
                                     )
         newVerif :: Module -> Forest DeclItem
         newVerif m = toForestVerif ( "Verificaciones"
-                                   , verifications m
-                                   , verifs $ invalidDecls m
+                                   , _verifications m
+                                   , verifs $ _invalidDecls m
                                    )
         newDecls :: Module -> Forest DeclItem
         newDecls m = newDeclSpec m ++ newDeclFunc m ++ 

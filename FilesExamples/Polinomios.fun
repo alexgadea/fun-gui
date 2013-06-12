@@ -57,7 +57,7 @@ case (y|>ys) -> (evaluar@(y|>ys))@n
                                  y * (pow@n)@0 +  〈 ∑ i : 0 ≤ i ∧ i < #ys : (y|>ys).(succ i) * (pow@n)@(succ i)〉
                                 = { Definición de Indexar }
                                  y * (pow@n)@0 +  〈 ∑ i : 0 ≤ i ∧ i < #ys : (ys.i) * ((pow@n)@(succ i))〉
-                                 = { prop powSucc }
+                                 = { fun pow }
                                  y * (pow@n)@0 +  〈 ∑ i : 0 ≤ i ∧ i < #ys : (ys.i) * (n * (pow@n)@i)〉
                                  = { Asociatividad del producto }
                                   y * (pow@n)@0 +  〈 ∑ i : 0 ≤ i ∧ i < #ys : ((ys.i) * n) * (pow@n)@i〉

@@ -8,35 +8,28 @@ let fun sum xs = case xs of
                             [] -> 0
                             (y|>ys) -> y + sum@ys
                         end
-verified from sumVerification
+end
 
 let prop truchada = sum@[] = 0 end
 
 {- El siguiente teorema es la verificación de la función sum -}
-let thm sumVerification = sum@xs = case xs of
-                                                                                        [] -> 0
-                                                                                        (y|>ys) -> y + sum@ys
-                                                                                    end
-begin proof  [~ especificacion : sum@xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉  ~]
-            induction in xs for sum@xs .=.  case xs of
-                                                                                     [] -> 0
-                                                                                     (y|>ys) -> y + sum@ys
-                                                                                 end
+let thm sumVerification = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉  = sum@xs
+
+begin proof 
+            induction in xs for 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs.i 〉 .=.  sum@xs
             where
 basic 
-[] ->     sum@[]
-              = { especificacion}
-              〈 ∑ i : 0 ≤ i ∧ i < #[] : [].i 〉
+[] ->     〈 ∑ i : 0 ≤ i ∧ i < #[] : [].i 〉
               = { Definición de Longitud }
               〈 ∑ i : 0 ≤ i ∧ i < 0 : [].i 〉
               = { Intervalo Vacío }
               〈 ∑ i : False : [].i 〉
               = { Rango Vacío Sumatoria }
               0
+              = { fun sum }
+              sum@[]
 
-induction y ▹ ys with hypind -> sum@(y ▹ ys)
-                                                                    = { especificacion }
-                                                                    〈 ∑ i : 0 ≤ i ∧ i < #(y ▹ ys) : (y ▹ ys).i〉
+induction y ▹ ys with hypind -> 〈 ∑ i : 0 ≤ i ∧ i < #(y ▹ ys) : (y ▹ ys).i〉
                                                                     = { Definición de Longitud }
                                                                     〈 ∑ i : 0 ≤ i ∧ i < succ (#ys) : (y ▹ ys).i〉
                                                                     = { Aritmética en Intervalo }
@@ -53,6 +46,8 @@ induction y ▹ ys with hypind -> sum@(y ▹ ys)
                                                                     y + 〈 ∑ i : 0 ≤ i ∧ i < #ys : (y ▹ ys).(succ i)〉
                                                                     = { Definición de Indexar }
                                                                     y + 〈 ∑ i : 0 ≤ i ∧ i < #ys : ys.i〉
-                                                                    = { especificacion }
+                                                                    = { hypind }
                                                                     y + (sum@ys)
+                                                                    = { fun sum }
+                                                                    sum@(y▹ys)
 end proof

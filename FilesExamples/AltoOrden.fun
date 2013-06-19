@@ -8,5 +8,5 @@ import SumVerificated
 let fun unaFun xs = 0
 end
 
-let fun funAltoOrden f xs = f@xs
+let fun funAltoOrden f xs = f.xs
 end

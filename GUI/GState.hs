@@ -153,4 +153,4 @@ updateEvalEnv :: GuiMonad ()
 updateEvalEnv = getGState >>= \st ->
     let lcomm = st ^. (gFunEvalSt . evalLComm) in
         get >>= liftIO . newEvalEnv >>= \eEnv ->
-        updateGState ((<~) gFunEvalSt (FunEvalState Nothing eEnv lcomm))
+        updateGState ((.~) gFunEvalSt (FunEvalState Nothing eEnv lcomm))

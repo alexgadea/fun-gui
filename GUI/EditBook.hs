@@ -10,7 +10,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
 import Control.Arrow
 
-import Lens.Family
+import Lens.Family hiding (set)
 
 import Data.Text (pack,unpack)
 import Data.Maybe (fromJust,fromMaybe)

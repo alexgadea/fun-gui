@@ -9,7 +9,7 @@ import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 
 import Data.Text(unpack)
 
-import Lens.Family
+import Lens.Family hiding (set)
 
 import Control.Monad.Trans.State hiding (get,put)
 import Control.Monad.Trans.RWS

@@ -106,7 +106,7 @@ processCmd s ref = either (return . SEither.Left . show)
             case c of
                  Load e -> newEvalEnv ref >>= \evEnv ->
                            writeRef ref 
-                            ((<~) gFunEvalSt (FunEvalState (Just e) evEnv (Just $ Load e)) st) >>
+                            ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just $ Load e)) st) >>
                            return (SEither.Right "Expresión cargada")
                  com@(Eval e) -> processEval com e ref st eval PE.prettyShow
                  com@Step -> processStep com eExp eEnv st evalStep 
@@ -129,14 +129,14 @@ processCmd s ref = either (return . SEither.Left . show)
                   Just eExp' -> return (runStateT (evalF eExp') eEnv) >>= \res ->
                                 maybe (return $ SEither.Right $ PE.prettyShow eExp')
                                       (\(evalE,newEnv) -> writeRef ref
-                                         ((<~) gFunEvalSt (FunEvalState 
+                                         ((.~) gFunEvalSt (FunEvalState 
                                             (Just $ fgetE evalE) newEnv (Just comm)) st) >>
                                                 return (SEither.Right $ fshow newEnv evalE))
                                       res
           processEval comm e ref st feval fshow =
                            newEvalEnv ref >>= \evEnv ->
                            writeRef ref
-                            ((<~) gFunEvalSt (FunEvalState (Just e) evEnv (Just comm)) st) >>
+                            ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just comm)) st) >>
                            return (feval evEnv e) >>=
                            (return . SEither.Right . fshow)
                            

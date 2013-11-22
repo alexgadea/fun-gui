@@ -42,7 +42,7 @@ createNewFileFromLoad mfp mname mcode = getGState >>= \st -> ask >>= \content ->
             io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
             io (containerRemove (castToContainer editorPaned) drawArea) >>
             createEditBook mname mcode >>= \editBook -> 
-            updateGState ((<~) gFunEditBook (Just $ FunEditBook editBook [mfp]))
+            updateGState ((.~) gFunEditBook (Just $ FunEditBook editBook [mfp]))
         Just editBook -> 
             let ebook = editBook ^. book
                 fileList = editBook ^. tabFileList
@@ -53,7 +53,7 @@ createNewFileFromLoad mfp mname mcode = getGState >>= \st -> ask >>= \content ->
             io (notebookGetNPages ebook) >>= \nPages ->
             io (notebookSetCurrentPage ebook (nPages-1)) >>
             return ()) (fromMaybe "blank" mname) >>
-            (updateGState ((<~) gFunEditBook 
+            (updateGState ((.~) gFunEditBook 
                                 (Just $ FunEditBook ebook (fileList ++ [mfp]))))
 
 -- | Crea un nuevo archivo en blanco.
@@ -73,10 +73,10 @@ closeCurrentFile = getGState >>= \st ->
                 io $ notebookRemovePage ebook cPageNum
                 quantPages <- io $ notebookGetNPages ebook
                 if (quantPages == 0) 
-                    then updateGState (gFunEditBook <~ Nothing)
+                    then updateGState (gFunEditBook .~ Nothing)
                     else do
                         let updateFileList = upList cPageNum fileList
-                        updateGState ((<~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
+                        updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
     where
         upList :: Int -> [a] -> [a]
         upList n ls = (init $ take (n+1) ls) ++ (drop (n+1) ls)
@@ -105,7 +105,7 @@ checkSelectFile =
                                 resetEnv >>
                                 updateModulesFunEditBook editBook mName) eRes
     where
-        updEnv env mname = updateGState (gFunEnv <~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env))) >>
+        updEnv env mname = updateGState (gFunEnv .~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env))) >>
                            updateEvalEnv
 
 -- | Función para cargar un archivo.
@@ -201,7 +201,7 @@ saveAtFile = getGState >>= \st ->
                 let fileList = editBook ^. tabFileList
                 cPageNum  <- io $ notebookGetCurrentPage ebook
                 let updateFileList = upList fp cPageNum fileList
-                updateGState ((<~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
+                updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
         upList :: FilePath -> Int -> [Maybe TextFilePath] -> [Maybe TextFilePath]
         upList fp n ls = (init $ take (n+1) ls) ++ [Just $ pack fp] ++ (drop (n+1) ls)
 

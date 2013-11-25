@@ -6,11 +6,10 @@ import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
+import Control.Lens hiding (set)
+import Control.Arrow
 import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
-import Control.Arrow
-
-import Lens.Family hiding (set)
 
 import Data.Text (pack,unpack)
 import Data.Maybe (fromJust,fromMaybe)

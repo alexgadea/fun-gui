@@ -11,7 +11,7 @@ import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 import Data.Text(unpack,pack)
 import Data.Tree
 
-import Lens.Family
+import Control.Lens
 
 import Control.Monad(when,unless)
 import Control.Monad.Trans.RWS (evalRWST,ask,get)

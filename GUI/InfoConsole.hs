@@ -9,13 +9,11 @@ import GUI.Config
 import GUI.GState
 import qualified GUI.Console as Console
 
-import Control.Monad.IO.Class
-import Control.Monad.Trans.State hiding (get,put)
-import Control.Monad.Trans.RWS
+import Control.Lens
 import Control.Arrow
-
-import Lens.Family
-
+import Control.Monad.IO.Class
+import Control.Monad.Trans.RWS
+import Control.Monad.Trans.State hiding (get,put)
 
 configInfoConsoleTV :: TextView -> TextBuffer -> IO ()
 configInfoConsoleTV = Console.configConsoleTV 

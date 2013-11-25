@@ -18,12 +18,10 @@ import Text.Parsec.Pos (sourceLine,sourceColumn)
 
 import qualified Data.Foldable as F (mapM_) 
 
-import Control.Monad.Trans.RWS
+import Control.Lens
 import Control.Monad
 import Control.Applicative
-
-import Lens.Family
-import Lens.Family.TH
+import Control.Monad.Trans.RWS
 
 import Fun.Decl
 import Fun.Decl.Error
@@ -47,7 +45,7 @@ data DeclItem = DeclItem { _declName  :: String
                          , _declErr   :: Maybe String
                          , _declState :: Maybe DeclState
                          }
-$(mkLenses ''DeclItem)
+$(makeLenses ''DeclItem)
 
 type DeclType = String
 

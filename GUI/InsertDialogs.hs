@@ -3,14 +3,13 @@ module GUI.InsertDialogs where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
+import Control.Lens
 import Control.Monad.Trans.RWS
 
 import GUI.GState
 import GUI.InfoConsole
 import GUI.Utils
 import GUI.EditBook
-
-import Lens.Family
 
 data DeclType = Spec | Fun | Val
 
@@ -20,9 +19,6 @@ data DeclDialog = DeclDialog { declType :: DeclType
                              , declExpr :: TextView
                              , declDialog :: Dialog
 }
-
-
-
 
 createDeclDialog :: DeclType -> GuiMonad DeclDialog
 createDeclDialog dtype = io $ do

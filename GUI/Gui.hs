@@ -3,15 +3,14 @@ module GUI.Gui where
 
 import Graphics.UI.Gtk hiding (get)
 
-import Control.Monad.IO.Class
-import Control.Monad.Trans.State hiding (get,put)
-import Control.Monad.Trans.RWS
+import Control.Lens
 import Control.Arrow
-import Control.Applicative
 import Control.Concurrent
+import Control.Applicative
+import Control.Monad.IO.Class
 import Control.Concurrent.STM
-
-import Lens.Family
+import Control.Monad.Trans.RWS
+import Control.Monad.Trans.State hiding (get,put)
 
 import Data.Text (pack)
 import Data.Maybe (fromJust,isJust,fromMaybe)

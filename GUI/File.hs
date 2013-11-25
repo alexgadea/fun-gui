@@ -2,9 +2,10 @@ module GUI.File where
 
 import Graphics.UI.Gtk hiding (get)
 
-import Control.Monad.Trans.RWS
-import Control.Monad.IO.Class
+import Control.Lens
 import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Trans.RWS
 
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -27,7 +28,6 @@ import Fun.Module(allDeclsValid)
 import Fun.Module.Error
 import Fun.Module (ModName)
 
-import Lens.Family
 
 -- | En general, salvo aclaración, un archivo en este contexto es directamente
 -- un campo de texto con su respectivo nombre en la interfaz.

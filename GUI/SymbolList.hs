@@ -9,13 +9,12 @@ import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 
 import Data.Text(unpack)
 
-import Lens.Family hiding (set)
-
-import Control.Monad.Trans.State hiding (get,put)
+import Control.Lens hiding (set)
+import Control.Monad (when)
 import Control.Monad.Trans.RWS
 import Control.Applicative ((<$>))
-import Control.Monad (when)
 import qualified Data.Foldable as F
+import Control.Monad.Trans.State hiding (get,put)
 
 import GUI.GState
 import GUI.EditBook

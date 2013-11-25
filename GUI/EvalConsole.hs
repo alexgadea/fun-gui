@@ -3,17 +3,14 @@ module GUI.EvalConsole where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.Glade
 
-
+import Control.Lens
+import Control.Arrow
+import Control.Concurrent
 import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
-import Control.Monad.Trans.State (runStateT)
 import Control.Monad.Trans.Cont
-import Control.Arrow
 import Control.Applicative((<$>))
-
-import Control.Concurrent
-
-import Lens.Family
+import Control.Monad.Trans.State (runStateT)
 
 import Data.Text (pack)
 import Data.Maybe (fromJust,isJust)

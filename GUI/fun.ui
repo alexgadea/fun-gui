@@ -424,6 +424,9 @@
                               <object class="GtkTreeView" id="declList">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection" id="treeview-selection1"/>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -605,6 +608,9 @@
                               <object class="GtkTreeView" id="axiomList">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection" id="treeview-selection2"/>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -687,50 +693,15 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkHBox" id="symGoLeftBox">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="swSymbolList">
+                  <object class="GtkIconView" id="symbolList">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="vscrollbar_policy">never</property>
-                    <child>
-                      <object class="GtkIconView" id="symbolList">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="item_orientation">horizontal</property>
-                      </object>
-                    </child>
+                    <property name="has_tooltip">True</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="symGoRightBox">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
+                    <property name="position">3</property>
                   </packing>
                 </child>
               </object>

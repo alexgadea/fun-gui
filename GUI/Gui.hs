@@ -78,10 +78,7 @@ makeGState xml = do
         loadedMod  <- builderGetObject xml castToLabel "labelLoadedModule"
         
         symFrame   <- builderGetObject xml castToFrame "symFrame"
-        goLeftBox  <- builderGetObject xml castToHBox "symGoLeftBox"
-        scrollW    <- builderGetObject xml castToScrolledWindow "swSymbolList"
         symIV      <- builderGetObject xml castToIconView "symbolList"
-        goRightBox <- builderGetObject xml castToHBox "symGoRightBox"
         
         axFrame  <- builderGetObject xml castToFrame "axiomFrame"
         axTV     <- builderGetObject xml castToTreeView "axiomList"
@@ -104,15 +101,11 @@ makeGState xml = do
         infoTBuf <- textViewGetBuffer infoTV
         
         configInfoConsoleTV infoTV infoTBuf
-{-
-        commIChan <- atomically newEmptyTMVar
-        commOChan <- atomically newEmptyTMVar
-        -}
         
         let funToolbarST    = FunToolbar symFrameB axFrameB
         let funMainPanedST  = FunMainPaned mainPaned
         let funInfoPanedST  = FunInfoPaned declFrame loadedMod
-        let funSymListST    = FunSymList symFrame goLeftBox scrollW symIV goRightBox
+        let funSymListST    = FunSymList symFrame symIV 
         let funAxListST     = FunAxList axFrame axTV axRel axLabExpr
         let funCommConsole  = FunCommConsole commEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV

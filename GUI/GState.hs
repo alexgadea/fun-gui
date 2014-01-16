@@ -66,10 +66,7 @@ $(makeLenses ''FunEditBook)
 
 -- | Información sobre la lista de símbolos.
 data FunSymList = FunSymList { _gSymFrame    :: Frame
-                             , _gGoLeftBox   :: HBox
-                             , _gScrollW     :: ScrolledWindow
                              , _gSymIconView :: IconView
-                             , _gGoRightBox  :: HBox
                              }
 $(makeLenses ''FunSymList)
 

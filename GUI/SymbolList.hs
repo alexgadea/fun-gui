@@ -27,8 +27,6 @@ listSymbols :: IO (ListStore SymItem)
 listSymbols = listStoreNew $ map addEncloseItem quantifiersList
                           ++ map addItem operatorsList
                           ++ map addItem constantsList
-                          
-
     where addItem :: Syntactic s =>  s -> SymItem
           addItem syn = unpack $ tRepr syn
           addEncloseItem :: Syntactic s =>  s -> SymItem
@@ -51,12 +49,8 @@ configSymbolList = do
                 s <- get
                 let sf      = content ^. (gFunSymbolList . gSymFrame)
                 let iv      = content ^. (gFunSymbolList . gSymIconView)
-                let goLB    = content ^. (gFunSymbolList . gGoLeftBox)
-                let goRB    = content ^. (gFunSymbolList . gGoRightBox)
-                let scrollW = content ^. (gFunSymbolList . gScrollW)
                 
                 list <- io listSymbols
-                io $ setupScrolledWindowSymbolList scrollW goLB goRB s
                 io $ setupSymbolList iv list
                 eventsSymbolList iv list
                 io $ widgetHideAll sf
@@ -66,58 +60,21 @@ configSymbolList = do
 -- | La configuración de la lista de símbolos propiamente hablando.
 setupSymbolList :: IconView -> ListStore SymItem -> IO (ListStore SymItem)
 setupSymbolList iv list = 
-     listStoreGetSize list >>= \listSize ->
-     return (makeColumnIdString 1) >>= \scol ->
-     return (makeColumnIdPixbuf (-1)) >>= \pcol ->
-     iconViewSetTextColumn iv scol >>
-     iconViewSetPixbufColumn iv pcol >>
-     customStoreSetColumn list scol id >>
-     set iv [ iconViewModel := Just list
-            , iconViewPixbufColumn := pcol
-            , iconViewTextColumn := scol
-            , iconViewColumns := listSize
-            , iconViewRowSpacing := 0
-            , iconViewMargin := 0
-            , iconViewSelectionMode := SelectionSingle
-            ] >>
-     widgetShowAll iv >>
-     return list
-
-setupScrolledWindowSymbolList :: ScrolledWindow -> HBox -> HBox -> GStateRef -> IO ()
-setupScrolledWindowSymbolList sw goLb goRb s = do
-            goR <- makeScrollArrow goRb stockGoForward
-            goL <- makeScrollArrow goLb stockGoBack
-            (Just  swslH) <- scrolledWindowGetHScrollbar sw
-            adj <- rangeGetAdjustment swslH
-            setupScrollWithArrow adj goR scrollInc s
-            setupScrollWithArrow adj goL scrollDec s
-            widgetSetChildVisible swslH False
-            widgetHide swslH
-            widgetShowAll goLb
-            widgetShowAll goRb
-
-setupScrollWithArrow :: Adjustment -> Button -> Double -> GStateRef -> IO (ConnectId Button)
-setupScrollWithArrow adj go inc s = 
-                go `on` buttonPressEvent $ tryEvent $ 
-                flip evalStateT s $ io $ do
-                        val <- io $ adjustmentGetValue adj
-                        upper <- adjustmentGetUpper adj
-                        pageSize <- adjustmentGetPageSize adj
-                        when (upper - pageSize > val + inc) $ 
-                             adjustmentSetValue adj (val + inc)
-
-makeScrollArrow :: HBox -> StockId -> IO Button
-makeScrollArrow box si = do
-                        symGo <- buttonNew
-                        
-                        buttonSetRelief symGo ReliefNone
-                        
-                        arrow <- imageNewFromStock si IconSizeMenu
-                        
-                        buttonSetImage symGo arrow
-                        
-                        boxPackStart box symGo PackNatural 0
-                        return symGo
+    listStoreGetSize list >>= \listSize ->
+    return (makeColumnIdString 1) >>= \scol ->
+    return (makeColumnIdPixbuf (-1)) >>= \pcol ->
+    iconViewSetTextColumn iv scol >>
+    iconViewSetPixbufColumn iv pcol >>
+    customStoreSetColumn list scol id >>
+    set iv [ iconViewModel := Just list
+        , iconViewPixbufColumn := pcol
+        , iconViewTextColumn := scol
+        , iconViewRowSpacing := 0
+        , iconViewMargin := 0
+        , iconViewSelectionMode := SelectionSingle
+        ] >>
+    widgetShowAll iv >>
+    return list
 
 eventsSymbolList :: IconView -> ListStore SymItem -> GuiMonad ()
 eventsSymbolList iv list = do

@@ -1,16 +1,20 @@
 module Main where
 
+import System.Environment (getArgs)
+
 import Graphics.UI.Gtk hiding (get)
 
 import GUI.Gui
 
 main :: IO ()
 main = do 
-    initGUI
+    _ <- initGUI
     
     xml <- builderNew
     builderAddFromFile xml "GUI/fun.ui"
     
-    mainFunGui xml
-
+    args <- getArgs
+    
+    _ <- mainFunGui xml args
+    
     mainGUI

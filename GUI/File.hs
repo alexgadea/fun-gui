@@ -7,9 +7,6 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
 
-import Control.Concurrent
-import Control.Concurrent.STM
-
 import qualified Data.Foldable as F
 import System.FilePath.Posix
 import Data.Maybe (fromMaybe,isJust,fromJust)
@@ -25,9 +22,6 @@ import GUI.EvalConsole(resetEnv)
 import Fun.Environment
 import Fun.Parser
 import Fun.Module(allDeclsValid)
-import Fun.Module.Error
-import Fun.Module (ModName)
-
 
 -- | En general, salvo aclaración, un archivo en este contexto es directamente
 -- un campo de texto con su respectivo nombre en la interfaz.
@@ -86,7 +80,6 @@ closeCurrentFile = getGState >>= \st ->
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st ->
-    ask >>= \content ->
     case st ^. gFunEditBook of
     Nothing -> return ()
     Just editBook -> do
@@ -96,57 +89,66 @@ checkSelectFile =
             else do
                 eRes <- io $ loadMainModuleFromFile $ fromJust mfp
                 either (\err -> updEnv [] Nothing >> printErrorMsg (show err)) 
-                        (\(env,mName) -> updEnv env (Just mName) >> 
-                                return (getModule env mName) >>= \(Just mainm) ->
+                        (\(env,modName) -> updEnv env (Just modName) >> 
+                                return (getModule env modName) >>= \(Just mainm) ->
                                 (if allDeclsValid mainm
                                    then return "."
                                    else return " con errores.") >>= \str ->
-                                printInfoMsg ("Módulo "++ (unpack mName) ++ " cargado" ++ str) >>
+                                printInfoMsg ("Módulo "++ (unpack modName) ++ " cargado" ++ str) >>
                                 resetEnv >>
-                                updateModulesFunEditBook editBook mName) eRes
+                                updateModulesFunEditBook editBook modName) eRes
     where
         updEnv env mname = updateGState (gFunEnv .~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env))) >>
                            updateEvalEnv
 
+-- | Función para cargar un archivo en base a un filepath.
+openFileFromPath :: TextFilePath -> GuiMonad ()
+openFileFromPath fp = ask >>= \ct -> get >>= \st -> io $
+        readFile (unpack fp) >>= \code -> 
+        takeFilepathName (unpack fp) >>= \fileName ->
+        createFromFile ct st (Just fp) (Just fileName) (Just code) >>
+        return ()
+
 -- | Función para cargar un archivo.
 openFile :: GuiMonad ()
 openFile = ask >>= \ct -> get >>= \st ->
-           io $ dialogLoad "Cargar programa" funFileFilter (openFile' ct st) >>
-            return ()
-    where
-        openFile' :: GReader -> GStateRef -> Maybe TextFilePath ->
-                     Maybe String -> Maybe String -> IO ()
-        openFile' content st mfp mname mcode = 
-            evalRWST (createNewFileFromLoad mfp mname mcode) content st >> 
-            return ()
+    io $ dialogLoad "Cargar programa" funFileFilter (createFromFile ct st) >>
+    return ()
+
+-- | Función mas general para crear una pestaña con codigo en base a un
+-- filepath, nombre de pestaña o codigo en un string.
+createFromFile :: GReader -> GStateRef -> Maybe TextFilePath ->
+                  Maybe String -> Maybe String -> IO ()
+createFromFile content st mfp mname mcode = 
+    evalRWST (createNewFileFromLoad mfp mname mcode) content st >> return ()
 
 -- | Dialogo general para la carga de archivos.
 dialogLoad :: String -> (FileChooserDialog -> IO ()) -> 
               (Maybe TextFilePath -> Maybe String -> Maybe String -> IO ()) -> 
               IO Bool
-dialogLoad label fileFilter action = do
-    dialog <- fileChooserDialogNew (Just label) 
+dialogLoad dlabel fileFilter action = do
+    dialog <- fileChooserDialogNew (Just dlabel) 
                                     Nothing 
                                     FileChooserActionOpen
                                     [ ("Cargar",ResponseAccept)
                                     , ("Cancelar",ResponseCancel)]
 
     fileFilter dialog 
-    response <- dialogRun dialog
+    dResponse <- dialogRun dialog
     
-    case response of
+    case dResponse of
         ResponseAccept -> do
             selected <- fileChooserGetFilename dialog
             F.mapM_ (\filepath -> 
                     readFile filepath >>= \code ->
-                    takeFileName filepath >>= \fileName ->
+                    takeFilepathName filepath >>= \fileName ->
                     action (Just $ pack filepath) (Just fileName) (Just code) >>
                     widgetDestroy dialog) selected 
             return True
         _ -> widgetDestroy dialog >> return False
-    where
-        takeFileName :: FilePath -> IO String
-        takeFileName = return . takeBaseName
+
+takeFilepathName :: FilePath -> IO String
+takeFilepathName = return . takeBaseName
 
 -- | Generador de filtros para la carga y guardado de archivos.
 setFileFilter :: FileChooserClass f => f -> [String] -> String -> IO ()
@@ -208,8 +210,8 @@ saveAtFile = getGState >>= \st ->
 -- | Dialogo general para guardar un archivo.
 saveDialog :: String -> String -> (FileChooserDialog -> IO ()) -> 
               String -> GuiMonad (Maybe FilePath)
-saveDialog label filename fileFilter serialItem = do
-        dialog <- io $ fileChooserDialogNew (Just label) 
+saveDialog dlabel filename fileFilter serialItem = do
+        dialog <- io $ fileChooserDialogNew (Just dlabel) 
                                             Nothing 
                                             FileChooserActionSave 
                                             [ ("Guardar",ResponseAccept)
@@ -218,9 +220,9 @@ saveDialog label filename fileFilter serialItem = do
         
         io $ fileChooserSetCurrentName dialog filename
         io $ fileFilter dialog
-        response <- io $ dialogRun dialog
+        dResponse <- io $ dialogRun dialog
 
-        case response of
+        case dResponse of
             ResponseAccept -> io (fileChooserGetFilename dialog) >>= 
                               \fp -> F.mapM_ save fp >> 
                               io (widgetDestroy dialog) >> 

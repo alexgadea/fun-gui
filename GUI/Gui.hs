@@ -4,24 +4,13 @@ module GUI.Gui where
 import Graphics.UI.Gtk hiding (get)
 
 import Control.Lens
-import Control.Arrow
-import Control.Concurrent
-import Control.Applicative
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
 import Control.Monad.Trans.RWS
-import Control.Monad.Trans.State hiding (get,put)
 
 import Data.Text (pack)
-import Data.Maybe (fromJust,isJust,fromMaybe)
 import Data.Reference
-
-import qualified Equ.Parser as EquParser
 
 import GUI.File
 import GUI.GState
-import GUI.EditBook
-import GUI.Config
 import GUI.SymbolList
 import GUI.AxiomList
 import GUI.EvalConsole
@@ -29,19 +18,20 @@ import GUI.InfoConsole
 import GUI.Utils
 import qualified GUI.InsertDialogs as IDialogs
 
-mainFunGui :: Builder -> IO (GReader, GStateRef)
-mainFunGui xml = do 
+mainFunGui :: Builder -> [FilePath] -> IO ()
+mainFunGui xml fps = do 
                 (gReader,gState) <- makeGState xml
 
-                (_,stRef,_) <- runRWST (do  configWindow
-                                            configMenuBarButtons  xml
-                                            configInsertMenuItems xml 
-                                            configToolBarButtons  xml
-                                            configCommandConsole
-                                            configSymbolList
-                                            configAxiomList
+                (_,_,_) <- runRWST (do  configWindow
+                                        configMenuBarButtons  xml
+                                        configInsertMenuItems xml 
+                                        configToolBarButtons  xml
+                                        configCommandConsole
+                                        configSymbolList
+                                        configAxiomList
+                                        mapM_ (openFileFromPath . pack) fps
                                         ) gReader gState
-                return (gReader,stRef)
+                return ()
 
 -- | Configura los botones de insert de declaraciones del menu.
 configInsertMenuItems :: Builder -> GuiMonad ()
@@ -51,11 +41,11 @@ configInsertMenuItems xml = ask >>= \content -> get >>= \st ->
             funItem  <- builderGetObject xml castToImageMenuItem "insertFunItem"
             valItem  <- builderGetObject xml castToImageMenuItem "insertValItem"
             -- falta implementar thmItem
-            thmItem  <- builderGetObject xml castToImageMenuItem "insertThmItem"
+            _ <- builderGetObject xml castToImageMenuItem "insertThmItem"
             
-            onActivateLeaf specItem (createRun IDialogs.Spec content st)
-            onActivateLeaf funItem  (createRun IDialogs.Fun  content st)
-            onActivateLeaf valItem  (createRun IDialogs.Val  content st)
+            _ <- onActivateLeaf specItem (createRun IDialogs.Spec content st)
+            _ <- onActivateLeaf funItem  (createRun IDialogs.Fun  content st)
+            _ <- onActivateLeaf valItem  (createRun IDialogs.Val  content st)
             
             return ()
     where
@@ -63,19 +53,19 @@ configInsertMenuItems xml = ask >>= \content -> get >>= \st ->
         createRunDialog dtype = IDialogs.createDeclDialog dtype >>= IDialogs.runDialog
         createRun :: IDialogs.DeclType -> GReader -> GStateRef -> IO ()
         createRun dtype content str = do
-                                evalRWST (createRunDialog dtype) content str
-                                return ()
+                            _ <- evalRWST (createRunDialog dtype) content str
+                            return ()
 
 -- | Genera el estado inicial de la mónada.
 makeGState :: Builder -> IO (GReader,GStateRef) 
 makeGState xml = do
         
-        symFrameB <- builderGetObject xml castToToggleToolButton "symFrameButton"
+        symbolFrameB <- builderGetObject xml castToToggleToolButton "symFrameButton"
         
         mainPaned <- builderGetObject xml castToHPaned "mainPaned"
         
         declFrame  <- builderGetObject xml castToFrame "declFrame"
-        loadedMod  <- builderGetObject xml castToLabel "labelLoadedModule"
+        loadedModule  <- builderGetObject xml castToLabel "labelLoadedModule"
         
         symFrame   <- builderGetObject xml castToFrame "symFrame"
         symIV      <- builderGetObject xml castToIconView "symbolList"
@@ -83,14 +73,14 @@ makeGState xml = do
         axFrame  <- builderGetObject xml castToFrame "axiomFrame"
         axTV     <- builderGetObject xml castToTreeView "axiomList"
         axRel    <- builderGetObject xml castToComboBox "comboAxioms"
-        axFrameB <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
+        axiomFrameB <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
         axLabExpr <- builderGetObject xml castToLabel "axiomExpr"
         
         window <- builderGetObject xml castToWindow "mainWindow"
         
         edPaned <- builderGetObject xml castToVPaned "editorPaned"
         commTV <- builderGetObject xml castToTextView "commandTView"
-        commEntry <- builderGetObject xml castToEntry "commandEntry"
+        commandEntry <- builderGetObject xml castToEntry "commandEntry"
         funStatusbar <- builderGetObject xml castToStatusbar "statusBar"
         infoTV <- builderGetObject xml castToTextView "infoConsoleTView"
         
@@ -102,12 +92,12 @@ makeGState xml = do
         
         configInfoConsoleTV infoTV infoTBuf
         
-        let funToolbarST    = FunToolbar symFrameB axFrameB
+        let funToolbarST    = FunToolbar symbolFrameB axiomFrameB
         let funMainPanedST  = FunMainPaned mainPaned
-        let funInfoPanedST  = FunInfoPaned declFrame loadedMod
+        let funInfoPanedST  = FunInfoPaned declFrame loadedModule
         let funSymListST    = FunSymList symFrame symIV 
         let funAxListST     = FunAxList axFrame axTV axRel axLabExpr
-        let funCommConsole  = FunCommConsole commEntry commTBuf commTV
+        let funCommConsole  = FunCommConsole commandEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
         
@@ -128,27 +118,27 @@ makeGState xml = do
 -- | Configura los botones de la barra, tales como abrir, cerrar, etc...
 configMenuBarButtons :: Builder -> GuiMonad ()
 configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
-        io $ do
-        
-        newFButton    <- builderGetObject xml castToToolButton "newFileButton"
-        openFButton   <- builderGetObject xml castToToolButton "openFileButton"
-        saveFButton   <- builderGetObject xml castToToolButton "saveFileButton"
-        saveAtFButton <- builderGetObject xml castToToolButton "saveFileAtButton"
-        closeFButton  <- builderGetObject xml castToToolButton "closeFileButton"
-        checkMButton  <- builderGetObject xml castToToolButton "checkModuleButton"
-        symFButton    <- builderGetObject xml castToToggleToolButton "symFrameButton"
-        axFButton     <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
-        
-        onToolButtonClicked newFButton    (eval createNewFile content st)
-        onToolButtonClicked openFButton   (eval openFile content st)
-        onToolButtonClicked saveFButton   (eval saveFile content st)
-        onToolButtonClicked saveAtFButton (eval saveAtFile content st)
-        onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
-        onToolButtonClicked checkMButton  (eval checkSelectFile content st)
-        onToolButtonClicked symFButton    (eval configSymFrameButton content st)
-        onToolButtonClicked axFButton     (eval configAxFrameButton content st)
-        
-        return ()
+    io $ do
+
+    newFButton    <- builderGetObject xml castToToolButton "newFileButton"
+    openFButton   <- builderGetObject xml castToToolButton "openFileButton"
+    saveFButton   <- builderGetObject xml castToToolButton "saveFileButton"
+    saveAtFButton <- builderGetObject xml castToToolButton "saveFileAtButton"
+    closeFButton  <- builderGetObject xml castToToolButton "closeFileButton"
+    checkMButton  <- builderGetObject xml castToToolButton "checkModuleButton"
+    symFButton    <- builderGetObject xml castToToggleToolButton "symFrameButton"
+    axFButton     <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
+
+    _ <- onToolButtonClicked newFButton    (eval createNewFile content st)
+    _ <- onToolButtonClicked openFButton   (eval openFile content st)
+    _ <- onToolButtonClicked saveFButton   (eval saveFile content st)
+    _ <- onToolButtonClicked saveAtFButton (eval saveAtFile content st)
+    _ <- onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
+    _ <- onToolButtonClicked checkMButton  (eval checkSelectFile content st)
+    _ <- onToolButtonClicked symFButton    (eval configSymFrameButton content st)
+    _ <- onToolButtonClicked axFButton     (eval configAxFrameButton content st)
+
+    return ()
 
 -- | Configura los botones del menude archivo.
 configToolBarButtons :: Builder -> GuiMonad ()
@@ -164,14 +154,14 @@ configToolBarButtons xml = ask >>= \content -> get >>= \st ->
             
             checkB <- builderGetObject xml castToMenuItem "checkButton"
             
-            onActivateLeaf newB   $ eval createNewFile    content st
-            onActivateLeaf openB   $ eval openFile    content st
-            onActivateLeaf saveB  $ eval saveFile         content st
-            onActivateLeaf saveAsB  $ eval saveAtFile         content st
-            onActivateLeaf closeB $ eval closeCurrentFile content st
-            onActivateLeaf quitB  $ widgetDestroy window
+            _ <- onActivateLeaf newB    $ eval createNewFile    content st
+            _ <- onActivateLeaf openB   $ eval openFile         content st
+            _ <- onActivateLeaf saveB   $ eval saveFile         content st
+            _ <- onActivateLeaf saveAsB $ eval saveAtFile       content st
+            _ <- onActivateLeaf closeB  $ eval closeCurrentFile content st
+            _ <- onActivateLeaf checkB  $ eval checkSelectFile  content st
+            _ <- onActivateLeaf quitB   $ widgetDestroy window
             
-            onActivateLeaf checkB $ eval checkSelectFile content st
             return ()
 
 -- | Configura la ventana principal.
@@ -181,7 +171,7 @@ configWindow = ask >>= \content ->
             let window = content ^. gFunWindow
             windowMaximize window
             widgetShowAll window
-            onDestroy window mainQuit
+            _ <- onDestroy window mainQuit
             return ()
             
 eval :: GuiMonad () -> GReader -> GStateRef -> IO ()

@@ -12,6 +12,12 @@ Tested-with:         GHC==6.10.1
 Build-type:          Simple
 Bug-reports:         https://github.com/alexgadea/fun-gui/issues
 
+data-dir: data
+data-files: fun.ui,
+            sourceview/language-specs/*.lang, 
+            sourceview/language-specs/*.rng, 
+            sourceview/styles/*.xml
+
 Source-repository this
     Type:     git
     Location: https://github.com/alexgadea/fun-gui
@@ -20,6 +26,7 @@ Source-repository this
 Executable fun-gui
     buildable: True
     HS-Source-Dirs: .
+    other-modules: Paths_fun_gui
     Main-is: GUI/Main.hs
     GHC-options: -Odph -Wall -threaded
     Build-depends:       base, containers >= 0.4, reference >= 0.1, 

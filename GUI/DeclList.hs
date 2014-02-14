@@ -105,7 +105,7 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ m ^. modName ) (newDecls
                                      , inSpecs $ decls $ _invalidDecls  m
                                      )
         newDeclFunc :: Module -> Forest DeclItem
-        newDeclFunc m = toForestDecl ( "Functions"
+        newDeclFunc m = toForestDecl ( "Funciones"
                                      , _functions $ _validDecls m
                                      , inFunctions $ decls $ _invalidDecls m
                                      )

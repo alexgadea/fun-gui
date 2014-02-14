@@ -5,13 +5,13 @@ import Graphics.UI.Gtk
 
 -- Para definir el lenguaje del resaltado
 
-languageSpecFolder = "GUI/sourceview/language-specs"
+languageSpecFolder = "sourceview/language-specs"
 
 languageSpecFunFile = languageSpecFolder ++ "/fun.lang"
 
 anotherLanguage = languageSpecFolder ++ "/haskell.lang"
 
-textStylesFolder = "GUI/sourceview/styles"
+textStylesFolder = "sourceview/styles"
 
 textStyleFile = textStylesFolder ++ "/fun.xml"
 

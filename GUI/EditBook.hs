@@ -21,6 +21,7 @@ import GUI.Utils
 
 import Fun.Module (ModName)
 import Fun.Parser
+import Paths_fun_gui
 
 -- Configura el lenguaje para el sourceView.
 configLanguage :: SourceBuffer -> GuiMonad ()
@@ -28,7 +29,8 @@ configLanguage buf = io $ do
     -- Language Spec
     slm <- sourceLanguageManagerNew
     path <- sourceLanguageManagerGetSearchPath slm
-    sourceLanguageManagerSetSearchPath slm (Just $ languageSpecFolder:path)
+    langSpecFolder <- getDataFileName languageSpecFolder
+    sourceLanguageManagerSetSearchPath slm (Just $ langSpecFolder:path)
     
     mlang <- sourceLanguageManagerGuessLanguage 
                 --slm (Just languageSpecFunFile) (Just funMimeType)
@@ -44,7 +46,8 @@ configLanguage buf = io $ do
             sourceBufferSetHighlightMatchingBrackets buf True        
             -- Style Scheme
             stm <- sourceStyleSchemeManagerNew
-            sourceStyleSchemeManagerSetSearchPath stm (Just [textStylesFolder])
+            txtStyleFolder <- getDataFileName textStylesFolder
+            sourceStyleSchemeManagerSetSearchPath stm (Just [txtStyleFolder])
             styleSch <- sourceStyleSchemeManagerGetScheme stm "fun"        
             sourceBufferSetStyleScheme buf (Just styleSch)
 

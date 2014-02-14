@@ -1,3 +1,2 @@
 [submodule "fun"]
-    path = dist/build/fun
-    url  = https://github.com/alexgadea/fun.git
+    url  = git://github.com/alexgadea/fun.git

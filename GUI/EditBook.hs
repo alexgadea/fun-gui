@@ -3,7 +3,6 @@
 module GUI.EditBook where
 
 import Graphics.UI.Gtk hiding (get)
-import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 import Control.Lens hiding (set)

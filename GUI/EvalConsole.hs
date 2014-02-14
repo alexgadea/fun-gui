@@ -1,7 +1,6 @@
 module GUI.EvalConsole where
 
 import Graphics.UI.Gtk hiding (get)
-import Graphics.UI.Gtk.Glade
 
 import Control.Lens
 import Control.Arrow

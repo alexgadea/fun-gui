@@ -22,9 +22,6 @@
     <property name="stock">gtk-missing-image</property>
   </object>
   <object class="GtkWindow" id="mainWindow">
-    <property name="can_focus">True</property>
-    <property name="has_focus">True</property>
-    <property name="is_focus">True</property>
     <property name="window_position">center</property>
     <child>
       <object class="GtkVBox" id="mainBox">

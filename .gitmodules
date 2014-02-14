@@ -1,2 +1,3 @@
 [submodule "fun"]
-    url  = git://github.com/alexgadea/fun.git
+    path = fun
+    url = git://github.com/alexgadea/fun.git

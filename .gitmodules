@@ -1,4 +1,4 @@
 [submodule "fun"]
 	path = fun
-	url = git://github.com/alexgadea/fun.git fun
+	url = git://github.com/alexgadea/fun.git
 

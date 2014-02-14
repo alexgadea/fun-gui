@@ -2,5 +2,6 @@ language: haskell
 
 before_install:
     - git submodule update --init --recursive
-    - cabal install fun/equ/equ.cabal
+    - cabal install gtk2hs-buildtools --global
+    - cabal install equ/equ.cabal
     - cabal install fun/fun.cabal

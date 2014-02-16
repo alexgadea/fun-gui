@@ -3,35 +3,20 @@ module GUI.EvalConsole where
 import Graphics.UI.Gtk hiding (get)
 
 import Control.Lens
-import Control.Arrow
 import Control.Concurrent
-import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
-import Control.Monad.Trans.Cont
-import Control.Applicative((<$>))
 import Control.Monad.Trans.State (runStateT)
 
-import Data.Text (pack)
-import Data.Maybe (fromJust,isJust)
 import Data.Reference
-import Data.Monoid (mempty)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.Strict.Either as SEither
 
-import Text.Parsec
-import Text.Parsec.String
-
 import GUI.GState
-import GUI.EditBook
-import GUI.Config
-import GUI.SymbolList
 import GUI.Utils
 import GUI.Console
 import GUI.EvalConsole.Parser
 import GUI.EvalConsole.EvalComm
-
-import Control.Concurrent(forkIO)
 
 import Equ.PreExpr
 
@@ -42,13 +27,12 @@ import Fun.Eval.Eval
 
 import qualified Equ.PreExpr as PE
 
+prependPrompt :: String -> String
 prependPrompt = ("fun> "++)
 
 resetEnv :: GuiMonad ()
 resetEnv = ask >>= \content ->
-           get >>= \ref ->
            io $ do
-             let entry = content ^. (gFunCommConsole . commEntry)
              let buf = content ^. (gFunCommConsole . commTBuffer)
              let tv = content ^. (gFunCommConsole . commTView)
              printInfoMsg "Modulo cargado" buf tv
@@ -67,7 +51,7 @@ configCommandConsole= ask >>= \content ->
                         do _ <- entry `on` entryActivate $ io $
                             do
                                cmdLine <- entryGetText entry
-                               forkIO (processCmd cmdLine ref >>= \res ->
+                               _ <- forkIO (processCmd cmdLine ref >>= \res ->
                                        res `seq`
                                        (postGUIAsync $ putResult res buf tv >>
                                                       scrollTV buf tv))
@@ -80,6 +64,8 @@ putResult :: EvResult -> TextBuffer -> TextView -> IO ()
 putResult (SEither.Left er) = printErrorMsg er
 putResult (SEither.Right e) = printInfoMsg e
 
+scrollTV :: (TextViewClass self1, TextBufferClass self) =>
+            self -> self1 -> IO ()
 scrollTV buf tv = 
     do
         titer2 <- textBufferGetEndIter buf
@@ -122,16 +108,16 @@ processCmd s ref = either (return . SEither.Left . show)
           processStep comm eExp eEnv st evalF fshow fgetE = 
               case eExp of
                   Nothing -> return $ SEither.Left "No hay expresión cargada"
-                  Just eExp' -> return (runStateT (evalF eExp') eEnv) >>= \res ->
+                  Just eExp' -> return (runStateT (evalF eExp') eEnv) >>= 
                                 maybe (return $ SEither.Right $ PE.prettyShow eExp')
                                       (\(evalE,newEnv) -> writeRef ref
                                          ((.~) gFunEvalSt (FunEvalState 
                                             (Just $ fgetE evalE) newEnv (Just comm)) st) >>
                                                 return (SEither.Right $ fshow newEnv evalE))
-                                      res
-          processEval comm e ref st feval fshow =
-                           newEvalEnv ref >>= \evEnv ->
-                           writeRef ref
+          
+          processEval comm e gsref st feval fshow =
+                           newEvalEnv gsref >>= \evEnv ->
+                           writeRef gsref
                             ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just comm)) st) >>
                            return (feval evEnv e) >>=
                            (return . SEither.Right . fshow)
@@ -157,13 +143,13 @@ showWithNewFuncs env evEnv e =
                
     where showVars denv = "\n\n{ " ++ (concatMap showVarDef $ M.toList $ delVars denv e) ++
                           "}\n"
-          showVarDef (v,(params,e)) = show v ++ (showParams params) ++ 
-                                      " := " ++ (PE.prettyShow e) ++ ";\n"
+          showVarDef (v,(params,expr)) = show v ++ (showParams params) ++ 
+                                      " := " ++ (PE.prettyShow expr) ++ ";\n"
           showParams = concatMap (\v -> " "++ (show v))
           -- delVars elimina de un mapa las variables que no ocurren en la expresion e
-          delVars m e = let varsInE = freeVars e in
-                            foldl (\m' (v,e) -> if S.member v varsInE
-                                                   then M.insert v e m'
+          delVars m expr = let varsInE = freeVars expr in
+                            foldl (\m' (v,e') -> if S.member v varsInE
+                                                   then M.insert v e' m'
                                                    else m')
                                   M.empty (M.toList m)
               

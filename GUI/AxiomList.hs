@@ -13,7 +13,7 @@ import Data.Tree
 
 import Control.Lens
 
-import Control.Monad(when,unless)
+import Control.Monad (unless)
 import Control.Monad.Trans.RWS (evalRWST,ask,get)
 import qualified Data.Foldable as F (mapM_) 
 
@@ -56,12 +56,12 @@ configAxiomList = do
             let tv  = content ^. (gFunAxiomList . gAxTreeView)
             let axr = content ^. (gFunAxiomList . gAxRel)
             
-            list <- io relationListStore
-            setupComboRel axr list
+            relList <- io relationListStore
+            setupComboRel axr relList
             
-            list <- io listAxioms
-            io $ setupAxiomList tv list
-            eventsAxiomList tv list
+            axlist <- io listAxioms
+            io $ setupAxiomList tv axlist
+            eventsAxiomList tv axlist
             io $ widgetHideAll af
             
             return ()
@@ -105,10 +105,10 @@ putOnText list path =
         justification :: [Relation] -> Int -> String -> String
         justification rs i j = (unpack $ relRepr (rs!!i)) ++ " { " ++ j ++ " }"
         configSelection :: TreePath -> FunEditBook -> GuiMonad ()
-        configSelection path editBook = ask >>= \content -> 
+        configSelection tpath editBook = ask >>= \content -> 
                 return (content ^. (gFunAxiomList . gAxRel)) >>= \axRel ->
                 getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
-                io (treeStoreGetValue list path) >>= \(ax,_) ->
+                io (treeStoreGetValue list tpath) >>= \(ax,_) ->
                 io (relationListStore) >>= \lsrel ->
                 io (listStoreToList lsrel) >>= \l ->
                 io (comboBoxGetActive axRel) >>= \i ->

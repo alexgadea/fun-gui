@@ -4,7 +4,9 @@ import Graphics.UI.Gtk
 
 
 -- Para definir el lenguaje del resaltado
-
+languageSpecFolder, languageSpecFunFile, anotherLanguage :: String
+textStylesFolder, textStyleFile, funMimeType :: String
+    
 languageSpecFolder = "sourceview/language-specs"
 
 languageSpecFunFile = languageSpecFolder ++ "/fun.lang"
@@ -17,11 +19,12 @@ textStyleFile = textStylesFolder ++ "/fun.xml"
 
 funMimeType = "text/fun"
 
-
 -- Para el identado:
 
 funIdentWidth :: Int
 funIdentWidth = 4
+
+spacesInsteadTab, setIndentOnTab, autoIdent :: Bool
 spacesInsteadTab = True
 setIndentOnTab = True
 autoIdent = True
@@ -43,4 +46,3 @@ scrollInc = 10.0
 
 scrollDec :: Double
 scrollDec = - scrollInc
-

@@ -7,14 +7,10 @@ import GUI.EditBook
 import GUI.Utils
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
-import Graphics.UI.Gtk.Gdk.Events 
 
-import Data.Text(unpack,pack)
-import Data.Maybe
-import Data.Map (empty,elems)
+import Data.Text(unpack)
 import Data.Tree
-import Data.Tuple (swap)
-import Text.Parsec.Pos (sourceLine,sourceColumn)
+import Text.Parsec.Pos (sourceLine)
 
 import qualified Data.Foldable as F (mapM_) 
 
@@ -27,7 +23,6 @@ import Fun.Decl
 import Fun.Decl.Error
 import Fun.Environment
 import Fun.Module
-import Fun.Module.Error
 import Fun.Declarations
 import Fun.Derivation hiding (prog)
 import Fun.Verification
@@ -155,8 +150,8 @@ listDecls :: Environment -> GuiMonad (TreeStore DeclItem)
 listDecls = io . treeStoreNew . toForestEnv
 
 -- | Configura una lista de posición y declaracion.
-setupDeclList :: Environment -> TreeView -> Window -> GuiMonad (TreeStore DeclItem)
-setupDeclList env tv pwin  = listDecls (reverse env) >>= setupDList
+setupDeclList :: Environment -> TreeView -> GuiMonad (TreeStore DeclItem)
+setupDeclList env tv = listDecls (reverse env) >>= setupDList
     where
         setupDList :: TreeStore DeclItem -> GuiMonad (TreeStore DeclItem)
         setupDList list = do
@@ -188,6 +183,7 @@ setupDeclList env tv pwin  = listDecls (reverse env) >>= setupDList
                 onSelectionChanged tree (evalRWST (onSelection list tree) content s >> return ()) >>
                 return list    
 
+declStateImg :: Maybe DeclState -> Maybe StockId
 declStateImg Nothing = Nothing
 declStateImg (Just DNoState) = Nothing
 declStateImg (Just DUnknown) = Just stockDialogQuestion
@@ -226,10 +222,7 @@ onSelection list tree = do
                                         return ()))
 
                 
-    where showModNotLoaded mName = 
-                putStrLn ("La declaración seleccionada está definida "++
-                              "en el módulo " ++ unpack mName)
-          selectPage notebook tab = 
+    where selectPage notebook tab = 
               notebookPageNum notebook tab >>=
               \(Just nPage) -> notebookSetCurrentPage notebook nPage
                     
@@ -252,10 +245,8 @@ selectText pos tbuf tview = do
 updateInfoPaned :: Environment -> Maybe ModName -> GuiMonad ()
 updateInfoPaned env mname = do
             content <- ask 
-            let w = content ^. gFunWindow
-            let sb = content ^. gFunStatusbar
             
-            updateInfo w content
+            updateInfo content
             
             let labModule = content ^. (gFunInfoPaned . loadedMod)
             
@@ -263,12 +254,12 @@ updateInfoPaned env mname = do
             
             return ()
     where
-        updateInfo :: Window -> GReader -> GuiMonad ()
-        updateInfo w content = do
+        updateInfo :: GReader -> GuiMonad ()
+        updateInfo content = do
                     let declF = content ^. (gFunInfoPaned . gDeclFrame)
                     cs <- io $ containerGetChildren declF
                     tv <- io $ cleanTreeView $ castToAlignment (head cs)
-                    setupDeclList env tv w
+                    _ <- setupDeclList env tv
                     io $ widgetShowAll tv
                     return ()
         cleanTreeView :: Alignment-> IO TreeView

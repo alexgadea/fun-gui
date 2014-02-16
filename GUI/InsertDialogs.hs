@@ -1,9 +1,8 @@
 module GUI.InsertDialogs where
 
-import Graphics.UI.Gtk hiding (get)
+import Graphics.UI.Gtk hiding (get,insertText,response)
 
 import Control.Lens
-import Control.Monad.Trans.RWS
 
 import GUI.GState
 import GUI.InfoConsole
@@ -71,7 +70,7 @@ createDeclDialog dtype = io $ do
     
 runDialog :: DeclDialog -> GuiMonad ()
 runDialog decDlg = 
-    getGState >>= \st -> ask >>= \content ->
+    getGState >>= \st ->
     case st ^. gFunEditBook of
         Nothing -> printErrorMsg "No hay ningún archivo abierto"
         Just fbook -> getTextEditFromFunEditBook fbook >>= \(_,_,tv) ->

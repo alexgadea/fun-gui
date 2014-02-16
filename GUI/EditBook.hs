@@ -6,13 +6,10 @@ import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.SourceView
 
 import Control.Lens hiding (set)
-import Control.Arrow
-import Control.Monad.IO.Class
 import Control.Monad.Trans.RWS
 
-import Data.Text (pack,unpack)
-import Data.Maybe (fromJust,fromMaybe)
-import Data.List (delete)
+import Data.Text (unpack)
+import Data.Maybe (fromMaybe)
 
 import GUI.GState
 import GUI.Config
@@ -78,7 +75,6 @@ configNotebook nb = io $
 -- | Crea un campo de texto y lo llena, de ser posible, con el string.
 createTextEntry :: Maybe String -> GuiMonad SourceView
 createTextEntry mcode = do
-            hbox <- io $ hBoxNew False 0
             buf <- io $ sourceBufferNew Nothing
             configLanguage buf
             
@@ -165,7 +161,7 @@ createEditBook mname mcode = do
             
             texte <- createTextEdit mcode
             
-            io $ notebookAppendPage newnt texte name
+            _<- io $ notebookAppendPage newnt texte name
             
             content <- ask 
             

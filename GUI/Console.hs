@@ -4,7 +4,6 @@ import Graphics.UI.Gtk hiding (get)
 
 import GUI.Utils
 import GUI.Config
-import GUI.GState
 
 configConsoleTV :: TextView -> TextBuffer -> IO ()
 configConsoleTV tv buf = do
@@ -15,10 +14,10 @@ configConsoleTV tv buf = do
                 , textTagForegroundSet := True]
         textTagTableAdd tagTable tag
         
-        tag <- textTagNew (Just "InfoScheme")
-        set tag [ textTagForegroundGdk := textColorCommTV
+        tag' <- textTagNew (Just "InfoScheme")
+        set tag' [ textTagForegroundGdk := textColorCommTV
                 , textTagForegroundSet := True]
-        textTagTableAdd tagTable tag
+        textTagTableAdd tagTable tag'
         
         widgetModifyBase tv StateNormal backColorCommTV
         widgetModifyText tv StateNormal textColorCommTV
@@ -38,8 +37,8 @@ printMsg msg tagname infoBuf infoTV  =
             -- Ingresamos el texto en el buffer
             putStrAtEnd infoBuf infoTV msg
                 
-            titer <- textBufferGetEndIter infoBuf
-            lineEnd <- textIterGetLine titer
+            titer' <- textBufferGetEndIter infoBuf
+            lineEnd <- textIterGetLine titer'
                 
             start <- textBufferGetIterAtLine infoBuf lineStart
             end <- textBufferGetIterAtLine infoBuf lineEnd

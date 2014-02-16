@@ -1,10 +1,7 @@
 module GUI.EvalConsole.Parser where
 
 import Text.Parsec
-import Text.Parsec.String
 
-
-import Equ.PreExpr(PreExpr)
 import Equ.Parser(parsePreExpr,initPExprState,PExprState(..),ParenFlag(..))
 
 import GUI.EvalConsole.EvalComm

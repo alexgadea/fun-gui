@@ -3,18 +3,15 @@
 module GUI.Utils where
 
 import Graphics.UI.Gtk
-import System.Glib.GType
-import System.Glib.GObject
 
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State
-import Control.Monad.Trans.RWS
 
 import Control.Applicative
 
+io :: MonadIO m => IO a -> m a
 io = liftIO
 
+textBufferInsertLn :: TextBufferClass self => self -> String -> IO ()
 textBufferInsertLn buf str = textBufferGetEndIter buf >>= \titer ->
                              textBufferInsert buf titer ('\n':str)
 
@@ -39,8 +36,8 @@ putMsgSB st cid m = statusbarPush st cid m >> return ()
 setLoadedModuleInfo :: Label -> Maybe String -> IO ()
 setLoadedModuleInfo label Nothing = labelSetText label "Error al cargar el módulo" >>
                                     styleInfoError >>= widgetModifyFont label
-setLoadedModuleInfo label (Just mod) = styleInfoModule >>= widgetModifyFont label >>
-                                       labelSetText label mod
+setLoadedModuleInfo label (Just modN) = styleInfoModule >>= widgetModifyFont label >>
+                                       labelSetText label modN
 
 
 -- -- | Estilo para títulos en info-boxes

@@ -4,7 +4,6 @@ module GUI.GState where
 
 import Fun.Environment
 import Fun.Parser
-import Fun.Module
 import Fun.Eval.Eval(EvalEnv,createEvalEnv)
 
 import GUI.EvalConsole.EvalComm
@@ -12,12 +11,9 @@ import GUI.EvalConsole.EvalComm
 import qualified Equ.PreExpr as Equ
 
 import Graphics.UI.Gtk hiding (get)
-import Graphics.UI.Gtk.SourceView
 
 import Control.Lens
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State hiding (get,put)
 import Control.Monad.Trans.RWS
 import Data.IORef
 import Data.Reference
@@ -141,6 +137,7 @@ newEvalEnv ref = readRef ref >>= \st ->
                     return (getVals funEnv) >>= \vals ->
                     return $ createEvalEnv funcs vals
 
+initEvalEnv :: EvalEnv
 initEvalEnv = createEvalEnv (getFuncs []) (getVals [])
 
 

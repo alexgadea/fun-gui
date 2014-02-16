@@ -10,15 +10,12 @@ import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 import Data.Text(unpack)
 
 import Control.Lens hiding (set)
-import Control.Monad (when)
 import Control.Monad.Trans.RWS
 import Control.Applicative ((<$>))
 import qualified Data.Foldable as F
-import Control.Monad.Trans.State hiding (get,put)
 
 import GUI.GState
 import GUI.EditBook
-import GUI.Config
 import GUI.Utils
 
 type SymItem = String
@@ -46,12 +43,11 @@ configSymFrameButton = do
 configSymbolList :: GuiMonad ()
 configSymbolList = do
                 content <-  ask
-                s <- get
                 let sf      = content ^. (gFunSymbolList . gSymFrame)
                 let iv      = content ^. (gFunSymbolList . gSymIconView)
                 
                 list <- io listSymbols
-                io $ setupSymbolList iv list
+                _ <- io $ setupSymbolList iv list
                 eventsSymbolList iv list
                 io $ widgetHideAll sf
                 
@@ -60,7 +56,6 @@ configSymbolList = do
 -- | La configuración de la lista de símbolos propiamente hablando.
 setupSymbolList :: IconView -> ListStore SymItem -> IO (ListStore SymItem)
 setupSymbolList iv list = 
-    listStoreGetSize list >>= \listSize ->
     return (makeColumnIdString 1) >>= \scol ->
     return (makeColumnIdPixbuf (-1)) >>= \pcol ->
     iconViewSetTextColumn iv scol >>
@@ -80,7 +75,7 @@ eventsSymbolList :: IconView -> ListStore SymItem -> GuiMonad ()
 eventsSymbolList iv list = do
             content <- ask
             s <- get
-            io $ iv `on` itemActivated $ \path -> 
+            _ <- io $ iv `on` itemActivated $ \path -> 
                         evalRWST (oneSelection list path) content s >> return ()
             return ()
 

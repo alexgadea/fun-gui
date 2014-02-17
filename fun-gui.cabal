@@ -36,4 +36,4 @@ Executable fun-gui
                          pango >= 0.12.1, random >= 1.0.0.3,
                          transformers >= 0.2.2.0, lens >= 3.9.0.2, fun,
                          utf8-string >= 0.3, MissingH, gtksourceview2,
-                         parsec >= 3, stm
+                         parsec >= 3, stm, directory >= 1.2.0.1

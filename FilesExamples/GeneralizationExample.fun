@@ -7,17 +7,17 @@ import SumVerificated
 -- (Con nuestros tipos de datos no tiene mucho sentido ya que siempre será True (no tenemos negativos)
 
 let spec
-    segPos xs = 〈∀ i : 0 ≤ i ∧ i < #xs : ¬ (sum.(xs↑i) < 0)〉
+    segPos.xs = 〈∀ i : 0 ≤ i ∧ i < #xs : ¬ (sum.(xs↑i) < 0)〉
 end
 
 -- Al querer derivar esto nos encontraríamos con un problema, ya que
 -- no podemos aplicar la especificación tal como está, necesitamos generalizarla:
 
 let spec
-    genSegPos n xs =  〈∀ i : 0 ≤ i ∧ i < #xs : ¬ (n + sum.(xs↑i) < 0)〉
+    genSegPos.n.xs =  〈∀ i : 0 ≤ i ∧ i < #xs : ¬ (n + sum.(xs↑i) < 0)〉
  end
  
- 
+
 let derivation genSegPos by recursion on xs
 
 case [] ->
@@ -57,7 +57,7 @@ end
 
 -- Esta es la definición de la función generalizada:
 let fun
-    genSegPos n xs =  
+    genSegPos.n.xs =  
         case xs of
             [] -> True
             (y ▹ ys) -> ¬ (n  < 0) ∧ genSegPos.(n+y).ys
@@ -66,6 +66,6 @@ let fun
 
 -- Y entonces podemos definir la función original:
 let fun 
-    segPos xs = genSegPos.0.xs
+    segPos.xs = genSegPos.0.xs
 end
 

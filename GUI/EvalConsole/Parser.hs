@@ -64,6 +64,6 @@ parseFromString :: String -> Either ParseError EvalComm
 parseFromString s = 
     if s==""
        then return LastComm
-       else runParser parserCmd (initPExprState UnusedParen) "" s
+       else runParser parserCmd (initPExprState UseParen) "" s
 
             

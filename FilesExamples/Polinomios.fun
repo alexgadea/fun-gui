@@ -7,7 +7,7 @@ module Polinomios
 
 -- Haremos uso de una función auxiliar que no está definida en el core del lenguaje: la función exponenciación:
 let fun
-    pow x y = case y of
+    pow.x.y = case y of
                             0 -> 1
                             succ n -> x * (pow.x).n
                          end
@@ -22,7 +22,7 @@ end
 
 -- Ahora especificamos la función evaluar:
 let spec
-    evaluar xs n = 〈∑i : 0≤i ∧ i<(#xs) : xs!i * (pow.n).i〉
+    evaluar.xs.n = 〈∑i : 0≤i ∧ i<(#xs) : xs!i * (pow.n).i〉
 end
 
 

@@ -76,7 +76,7 @@ scrollTV buf tv =
                                 
 -- processCmd toma un string 
 processCmd :: String -> GStateRef -> IO EvResult
-processCmd s ref = either (return . SEither.Left . show)
+processCmd s ref = either (return . SEither.Left . ("ERROR: "++) . show)
                           pcmd
                           (parseFromString s)
     where pcmd c = 
@@ -89,7 +89,7 @@ processCmd s ref = either (return . SEither.Left . show)
                  Load e -> newEvalEnv ref >>= \evEnv ->
                            writeRef ref 
                             ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just $ Load e)) st) >>
-                           return (SEither.Right "Expresión cargada")
+                           return (SEither.Right $ "Expresión cargada" ++ show e)
                  com@(Eval e) -> processEval com e ref st eval PE.prettyShow
                  com@Step -> processStep com eExp eEnv st evalStep 
                                     (showWithNewFuncs fenv) id
@@ -119,7 +119,7 @@ processCmd s ref = either (return . SEither.Left . show)
                            newEvalEnv gsref >>= \evEnv ->
                            writeRef gsref
                             ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just comm)) st) >>
-                           return (feval evEnv e) >>=
+                           return (feval e evEnv) >>=
                            (return . SEither.Right . fshow)
                            
           showTrace ((rulename,e):ls) = 

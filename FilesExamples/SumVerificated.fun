@@ -1,10 +1,10 @@
 module SumVerificated
 
 let spec 
-    sum xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 
+    sum.xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 
 end
 
-let fun sum xs = case xs of
+let fun sum.xs = case xs of
                             [] -> 0
                             (y|>ys) -> y + sum.ys
                         end
@@ -16,7 +16,7 @@ let prop truchada = sum.[] = 0 end
 let thm sumVerification = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉  = sum.xs
 
 begin proof 
-            induction in xs for 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 !=!  sum.xs
+            induction in xs for 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 .=.  sum.xs
             where
 basic 
 [] ->     〈 ∑ i : 0 ≤ i ∧ i < #[] : []!i 〉

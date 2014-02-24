@@ -1,9 +1,15 @@
 module Sum
 
 let spec 
-    sum xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 
+    sum.xs = 〈 ∑ i : 0 ≤ i ∧ i < #xs : xs!i 〉 
 end
 
+let fun   sum : [Nat] -> Nat
+            sum.xs = case xs of 
+                               [] -> 0
+                               (y |> ys) -> y+sum.ys
+                               end
+end
 
 let derivation sum by recursion on xs
     case [] -> sum.[]

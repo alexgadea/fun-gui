@@ -1,7 +1,7 @@
 module And
 
 let spec 
-    and xs = 〈∀ i : 0 ≤ i ∧ i < #xs : xs!i 〉
+    and.xs = 〈∀ i : 0 ≤ i ∧ i < #xs : xs!i 〉
 end
 
 let derivation and by recursion on xs

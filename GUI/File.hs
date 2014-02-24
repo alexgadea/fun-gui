@@ -98,7 +98,9 @@ checkSelectFile =
                                 resetEnv >>
                                 updateModulesFunEditBook editBook modName) eRes
     where
-        updEnv env mname = updateGState (gFunEnv .~ env) >> updateInfoPaned env mname >> liftIO (putStrLn ("Env cargado = "++(show env))) >>
+        updEnv env mname = updateGState (gFunEnv .~ env) >>
+                           updateInfoPaned env mname >>
+                           liftIO (putStrLn ("Env cargado = "++(show env))) >>
                            updateEvalEnv
 
 -- | Función para cargar un archivo en base a un filepath.

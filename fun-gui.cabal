@@ -1,7 +1,7 @@
 Name:                fun-gui
 Description: Entorno de desarrollo de programas en el lenguaje FUN.
 Version:             0.1
-License:             GPL
+License:             GPL-3
 License-file:        LICENSE
 Author:              Renato Cherini, Alejandro Gadea, Emmanuel Gunther, Miguel Pagano
 Maintainer:          Miguel Pagano <pagano@famaf.unc.edu.ar>

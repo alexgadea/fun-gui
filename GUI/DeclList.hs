@@ -8,6 +8,7 @@ import GUI.Utils
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
 
+import Data.Maybe(isJust)
 import Data.Text(unpack)
 import Data.Tree
 import Text.Parsec.Pos (sourceLine)
@@ -61,6 +62,7 @@ toForestDecl (dt,ds,ids) =
                                              ) []) ids
                   )
             ] 
+
 
 toForestVerif :: (String,[Verification],[ErrInVerif Verification]) -> 
                  Forest DeclItem
@@ -202,14 +204,15 @@ onSelection list tree = do
             
             maybe (return ()) (printErrorMsg) merr
             
-            case mpos of
-                Nothing -> return ()
-                Just pos -> do
-                    s <- getGState
-                    let Just ebook = s ^. gFunEditBook
-                    let notebook = ebook ^. book
+            when (isJust mpos) $ do
+                let (Just pos) = mpos
+                s <- getGState
+                let ebook = s ^. gFunEditBook
+                when (isJust ebook) $ do
+                    let (Just eb) = ebook
+                    let notebook = eb ^. book
                     let mName = moduleName pos
-                    
+                 
                     io $ containerForeach notebook
                             (\child -> notebookGetTabLabelText notebook child >>=
                             \(Just labtext) ->
@@ -224,8 +227,8 @@ onSelection list tree = do
                 
     where selectPage notebook tab = 
               notebookPageNum notebook tab >>=
-              \(Just nPage) -> notebookSetCurrentPage notebook nPage
-                    
+              maybe (return ()) (notebookSetCurrentPage notebook)
+
                     
 selectText :: DeclPos -> TextBuffer -> TextView -> IO ()
 selectText pos tbuf tview = do

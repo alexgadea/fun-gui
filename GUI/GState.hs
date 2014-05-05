@@ -100,7 +100,7 @@ $(makeLenses ''GReader)
 -- | Tipo de mónada de estado, llevamos el environment de un modulo bien 
 -- chequeado y la info sobre la parte derecha de la interfaz, es decir, 
 -- la que contiene los campos de texto para escribir programas.
-data GState = GState { _gFunEnv :: Environment 
+data GState = GState { _gFunEnv :: Environment
                      , _gFunEditBook  :: Maybe FunEditBook
                      , _gFunEvalSt :: FunEvalState
                      }

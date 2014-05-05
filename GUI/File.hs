@@ -1,3 +1,4 @@
+{-# Language DoAndIfThenElse #-}
 module GUI.File where
 
 import Graphics.UI.Gtk hiding (get)
@@ -10,7 +11,7 @@ import Control.Monad.Trans.RWS
 import qualified Data.Foldable as F
 import System.FilePath.Posix
 import Data.Maybe (fromMaybe,isJust,fromJust)
-import Data.Text hiding (take,init,drop)
+import Data.Text hiding (take,init,drop,null,head)
 
 import GUI.GState
 import GUI.DeclList
@@ -21,7 +22,7 @@ import GUI.EvalConsole(resetEnv)
 
 import Fun.Environment
 import Fun.Parser
-import Fun.Module(allDeclsValid)
+import Fun.Module(allDeclsValid,modName,ModName)
 
 -- | En general, salvo aclaración, un archivo en este contexto es directamente
 -- un campo de texto con su respectivo nombre en la interfaz.
@@ -57,51 +58,53 @@ createNewFile = createNewFileFromLoad Nothing Nothing Nothing
 -- | Cierra el archivo presente.
 closeCurrentFile :: GuiMonad ()
 closeCurrentFile = getGState >>= \st ->
-        case st ^. gFunEditBook of
-            Nothing -> return ()
-            Just editBook -> 
-                do
-                let ebook    = editBook ^. book
-                let fileList = editBook ^. tabFileList
-                cPageNum  <- io $ notebookGetCurrentPage ebook
-                io $ notebookRemovePage ebook cPageNum
-                quantPages <- io $ notebookGetNPages ebook
-                if (quantPages == 0) 
-                    then updateGState (gFunEditBook .~ Nothing)
-                    else do
-                        let updateFileList = upList cPageNum fileList
-                        updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
-    where
-        upList :: Int -> [a] -> [a]
-        upList n ls = (init $ take (n+1) ls) ++ (drop (n+1) ls)
+        when (isJust (st ^. gFunEditBook)) $ do
+           let (Just editBook) = st ^. gFunEditBook
+           let ebook    = editBook ^. book
+           let fileList = editBook ^. tabFileList
+           let env = st ^. gFunEnv 
+           (_,myModName,_) <- getTextEditFromFunEditBook editBook
+           cPageNum  <- io $ notebookGetCurrentPage ebook
+           io $ notebookRemovePage ebook cPageNum
+           quantPages <- io $ notebookGetNPages ebook
+           -- Si el archivo está cargado, eliminamos todas las declaraciones
+           -- de la barra de la izquierda.
+           unless (null env || pack myModName /= head env ^. modName) (updEnv [] Nothing)
+           -- Si no quedan módulos abiertos, cerramos el EditBook.
+           if (quantPages == 0) 
+           then updateGState (gFunEditBook .~ Nothing)
+           else do let updateFileList = upList cPageNum fileList
+                   updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
+                   
+    where upList :: Int -> [a] -> [a]
+          upList n ls = take n ls ++ drop (n+1) ls
 
 -- | Chequea un archivo cargado, esto implica parsearlo, typechequearlo y
 -- validarlo.
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st ->
-    case st ^. gFunEditBook of
-    Nothing -> return ()
-    Just editBook -> do
+    when (isJust $ st ^. gFunEditBook) $ do 
+        let (Just editBook) = st ^. gFunEditBook
         (mfp,_,_) <- getTextEditFromFunEditBook editBook
-        if (not $ isJust mfp) 
-            then saveAtFile
-            else do
-                eRes <- io $ loadMainModuleFromFile $ fromJust mfp
-                either (\err -> updEnv [] Nothing >> printErrorMsg (show err)) 
-                        (\(env,modName) -> updEnv env (Just modName) >> 
-                                return (getModule env modName) >>= \(Just mainm) ->
-                                (if allDeclsValid mainm
-                                   then return "."
-                                   else return " con errores.") >>= \str ->
-                                printInfoMsg ("Módulo "++ (unpack modName) ++ " cargado" ++ str) >>
-                                resetEnv >>
-                                updateModulesFunEditBook editBook modName) eRes
-    where
-        updEnv env mname = updateGState (gFunEnv .~ env) >>
-                           updateInfoPaned env mname >>
-                           liftIO (putStrLn ("Env cargado = "++(show env))) >>
-                           updateEvalEnv
+        if (not $ isJust mfp)
+        then saveAtFile
+        else (io . loadMainModuleFromFile) (fromJust mfp) >>=
+                either notLoadModule (loadModule editBook)
+
+  where loadModule eb (env, name) = do updEnv env (Just name)
+                                       let (Just mainm) = getModule env name
+                                       printInfoMsg (msgModule mainm name)
+                                       resetEnv
+                                       updateModulesFunEditBook eb name
+        notLoadModule err = updEnv [] Nothing >> printErrorMsg (show err)
+        msgModule m name | allDeclsValid m = "Módulo "++ unpack name ++ " cargado."
+                         | otherwise = "Módulo "++ unpack name ++ " cargado con errores."
+
+updEnv :: Environment -> Maybe ModName -> GuiMonad ()
+updEnv env mname = updateGState (gFunEnv .~ env) >>
+                   updateInfoPaned env mname >>
+                   updateEvalEnv
 
 -- | Función para cargar un archivo en base a un filepath.
 openFileFromPath :: TextFilePath -> GuiMonad ()

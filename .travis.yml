@@ -1,5 +1,10 @@
 language: haskell
 
+env:
+  global:
+    - CABALVER=1.18
+    - EXTRA_DEPS_PRE="Cabal"
+
 before_install:
     - git submodule update --init --recursive
     - cabal install fun/equ/equ.cabal

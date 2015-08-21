@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module GUI.Console (configConsoleTV,printInfoMsg, printErrorMsg) where
 
 import Graphics.UI.Gtk hiding (get)

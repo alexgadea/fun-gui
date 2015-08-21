@@ -8,7 +8,7 @@ import Graphics.UI.Gtk.SourceView
 import Control.Lens hiding (set)
 import Control.Monad.Trans.RWS
 
-import Data.Text (unpack)
+import Data.Text (Text,unpack)
 import Data.Maybe (fromMaybe)
 
 import GUI.GState
@@ -34,7 +34,7 @@ configLanguage buf = io $ do
     case mlang of
         Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
         Just lang -> do
-            langId <- sourceLanguageGetId lang
+            langId <- (sourceLanguageGetId lang :: IO Text)
             putStrLn ("Lenguaje = "++show langId)
             sourceBufferSetLanguage buf (Just lang)
 

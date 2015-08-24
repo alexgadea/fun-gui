@@ -1,4 +1,4 @@
-{-# Language DoAndIfThenElse #-}
+{-# Language DoAndIfThenElse, OverloadedStrings #-}
 module GUI.File where
 
 import Graphics.UI.Gtk hiding (get)
@@ -84,12 +84,12 @@ closeCurrentFile = getGState >>= \st ->
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st ->
-    when (isJust $ st ^. gFunEditBook) $ do 
+    when (isJust $ st ^. gFunEditBook) $ do
         let (Just editBook) = st ^. gFunEditBook
         (mfp,_,_) <- getTextEditFromFunEditBook editBook
         if (not $ isJust mfp)
         then saveAtFile
-        else (io . loadMainModuleFromFile) (fromJust mfp) >>=
+        else saveFile >> (io . loadMainModuleFromFile) (fromJust mfp) >>=
                 either notLoadModule (loadModule editBook)
 
   where loadModule eb (env, name) = do updEnv env (Just name)

@@ -84,9 +84,10 @@ closeCurrentFile = getGState >>= \st ->
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st ->
-    when (isJust $ st ^. gFunEditBook) $ do
+    when (isJust $ st ^. gFunEditBook) $ do 
         let (Just editBook) = st ^. gFunEditBook
         (mfp,_,_) <- getTextEditFromFunEditBook editBook
+        io $ putStrLn mfp
         if (not $ isJust mfp)
         then saveAtFile
         else saveFile >> (io . loadMainModuleFromFile) (fromJust mfp) >>=

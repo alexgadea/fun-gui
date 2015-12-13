@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module GUI.EvalConsole where
 
 import Graphics.UI.Gtk hiding (get)
@@ -21,7 +22,6 @@ import GUI.EvalConsole.EvalComm
 import Equ.PreExpr
 
 import Fun.Environment
--- import Fun.Eval.Proof
 import Fun.Eval.Eval
 
 

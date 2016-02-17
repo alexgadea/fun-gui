@@ -271,3 +271,10 @@ updateInfoPaned env mname = do
                             treeViewNew >>= \tvnew ->
                             containerAdd ali tvnew >>
                             return tvnew
+
+
+getModulesTV :: ContainerClass w => w -> IO TreeView
+getModulesTV declFrame = do
+  cs <- containerGetChildren declFrame
+  [tv] <- containerGetChildren (castToAlignment (head cs))
+  return (castToTreeView $ tv)

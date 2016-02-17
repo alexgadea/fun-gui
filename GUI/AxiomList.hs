@@ -6,7 +6,8 @@ import Equ.Rule (Relation,relRepr)
 import Equ.Theories (relationList)
 import qualified Equ.Theories as ET (axiomGroup,Grouped,toForest) 
 
-import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
+import Graphics.UI.Gtk hiding (eventButton, eventSent,get) 
+import qualified Graphics.UI.Gtk as Gtk
 
 import Data.Text(unpack,pack)
 import Data.Tree
@@ -37,16 +38,16 @@ listAxioms = treeStoreNew $ forest ET.axiomGroup ++ forest eval
         addItem t = (unpack $ truthName t,Just $ truthBasic t)
 
 -- | Configuración del botón para activar/desactivar la lista de axiomas.
-configAxFrameButton :: GuiMonad ()
-configAxFrameButton = do
+axListToggle :: GuiMonad ()
+axListToggle = do
                 content <-  ask
                 let af          = content ^. (gFunAxiomList . gAxFrame)
                 let afButton    = content ^. (gFunToolbar . axFrameB)
-                
-                active <- io $ toggleToolButtonGetActive afButton
-                if active 
-                   then io $ widgetShowAll af
-                   else io $ widgetHideAll af
+                visible <- io $ Gtk.get af widgetVisible
+                io $ toggleToolButtonSetActive afButton (not visible)
+                if visible
+                  then io $ widgetHideAll af
+                  else io $ widgetShowAll af
 
 -- | Configuración general de la lista de axiomas.
 configAxiomList :: GuiMonad ()

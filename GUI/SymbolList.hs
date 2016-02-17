@@ -6,7 +6,7 @@ import Equ.Theories
 import Equ.Syntax
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
-
+import qualified Graphics.UI.Gtk as Gtk
 import Data.Text(unpack)
 
 import Control.Lens hiding (set)
@@ -34,12 +34,13 @@ configSymFrameButton = do
                 content <-  ask
                 let sf          = content ^. (gFunSymbolList . gSymFrame)
                 let sfButton    = content ^. (gFunToolbar . symFrameB)
+                visible <- io $ Gtk.get sf widgetVisible
+                io $ toggleToolButtonSetActive sfButton (not visible)
+                if visible
+                  then io $ widgetHideAll sf
+                  else io $ widgetShowAll sf
                 
-                active <- io $ toggleToolButtonGetActive sfButton
-                if active 
-                   then io $ widgetShowAll sf
-                   else io $ widgetHideAll sf
-
+                
 configSymbolList :: GuiMonad ()
 configSymbolList = do
                 content <-  ask
@@ -48,7 +49,7 @@ configSymbolList = do
                 
                 list <- io listSymbols
                 _ <- io $ setupSymbolList iv list
-                eventsSymbolList iv list
+                eventsSymbolList iv list                
                 io $ widgetHideAll sf
                 
                 return ()
@@ -75,6 +76,7 @@ eventsSymbolList :: IconView -> ListStore SymItem -> GuiMonad ()
 eventsSymbolList iv list = do
             content <- ask
             s <- get
+            _ <- io $ iv `on` focusInEvent $ (io $ iconViewSelectPath iv [0] >> return True)
             _ <- io $ iv `on` itemActivated $ \path -> 
                         evalRWST (oneSelection list path) content s >> return ()
             return ()

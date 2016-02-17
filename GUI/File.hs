@@ -74,7 +74,7 @@ closeCurrentFile = getGState >>= \st ->
            if (quantPages == 0) 
            then updateGState (gFunEditBook .~ Nothing)
            else do let updateFileList = upList cPageNum fileList
-                   updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
+                   updateGState (gFunEditBook .~ (Just $ FunEditBook ebook updateFileList))
                    
     where upList :: Int -> [a] -> [a]
           upList n ls = take n ls ++ drop (n+1) ls
@@ -87,7 +87,6 @@ checkSelectFile =
     when (isJust $ st ^. gFunEditBook) $ do 
         let (Just editBook) = st ^. gFunEditBook
         (mfp,_,_) <- getTextEditFromFunEditBook editBook
-        io $ putStrLn mfp
         if (not $ isJust mfp)
         then saveAtFile
         else saveFile >> (io . loadMainModuleFromFile) (fromJust mfp) >>=

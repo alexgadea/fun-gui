@@ -16,6 +16,7 @@ import GUI.AxiomList
 import GUI.EvalConsole
 import GUI.InfoConsole
 import GUI.Utils
+import GUI.DeclList
 import qualified GUI.InsertDialogs as IDialogs
 
 mainFunGui :: Builder -> [FilePath] -> IO ()
@@ -76,6 +77,10 @@ makeGState xml = do
         axiomFrameB <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
         axLabExpr <- builderGetObject xml castToLabel "axiomExpr"
         
+        evalLbl <- builderGetObject xml castToLabel "evalLbl"
+        infoLbl <- builderGetObject xml castToLabel "infoLbl"
+        modulesLbl <- builderGetObject xml castToLabel "modulesLbl"
+        
         window <- builderGetObject xml castToWindow "mainWindow"
         
         edPaned <- builderGetObject xml castToVPaned "editorPaned"
@@ -83,6 +88,7 @@ makeGState xml = do
         commandEntry <- builderGetObject xml castToEntry "commandEntry"
         funStatusbar <- builderGetObject xml castToStatusbar "statusBar"
         infoTV <- builderGetObject xml castToTextView "infoConsoleTView"
+        infoEvalNB <- builderGetObject xml castToNotebook "infoEvalNB"
         
         panedSetPosition edPaned 400
         
@@ -91,6 +97,19 @@ makeGState xml = do
         infoTBuf <- textViewGetBuffer infoTV
         
         configInfoConsoleTV infoTV infoTBuf
+
+        evalLbl `on` labelActiveCurrentLink $ do
+          notebookSetCurrentPage infoEvalNB 1
+          widgetGrabFocus commandEntry
+          
+        infoLbl `on` labelActiveCurrentLink $ do
+          notebookSetCurrentPage infoEvalNB 0
+          widgetGrabFocus infoTV
+
+        modulesLbl `on` labelActiveCurrentLink $ do
+          cs <- io $ containerGetChildren declFrame
+          tv <- io $ getModulesTV declFrame
+          widgetGrabFocus tv
         
         let funToolbarST    = FunToolbar symbolFrameB axiomFrameB
         let funMainPanedST  = FunMainPaned mainPaned
@@ -100,7 +119,6 @@ makeGState xml = do
         let funCommConsole  = FunCommConsole commandEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
-        
         
         gState <- newRef $ GState [] Nothing (FunEvalState Nothing initEvalEnv Nothing)
         let gReader = GReader window 
@@ -128,6 +146,7 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
     checkMButton  <- builderGetObject xml castToToolButton "checkModuleButton"
     symFButton    <- builderGetObject xml castToToggleToolButton "symFrameButton"
     axFButton     <- builderGetObject xml castToToggleToolButton "AxiomFrameButton"
+    axFBItem      <- builderGetObject xml castToCheckMenuItem "axLabel"
 
     _ <- onToolButtonClicked newFButton    (eval createNewFile content st)
     _ <- onToolButtonClicked openFButton   (eval openFile content st)
@@ -136,11 +155,12 @@ configMenuBarButtons xml = ask >>= \content -> get >>= \st ->
     _ <- onToolButtonClicked closeFButton  (eval closeCurrentFile content st)
     _ <- onToolButtonClicked checkMButton  (eval checkSelectFile content st)
     _ <- onToolButtonClicked symFButton    (eval configSymFrameButton content st)
-    _ <- onToolButtonClicked axFButton     (eval configAxFrameButton content st)
-
+    _ <- onToolButtonClicked axFButton     (eval axListToggle content st)
+    _ <- axFBItem `on` checkMenuItemToggled $ eval axListToggle content st
+      
     return ()
 
--- | Configura los botones del menude archivo.
+-- | Configura los botones del menu de archivo.
 configToolBarButtons :: Builder -> GuiMonad ()
 configToolBarButtons xml = ask >>= \content -> get >>= \st ->
             io $ do

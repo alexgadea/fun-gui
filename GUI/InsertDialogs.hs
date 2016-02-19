@@ -5,7 +5,6 @@ import Graphics.UI.Gtk hiding (get,insertText,response)
 import Control.Lens
 
 import GUI.GState
-import GUI.InfoConsole
 import GUI.Utils
 import GUI.EditBook
 

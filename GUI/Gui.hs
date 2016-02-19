@@ -102,28 +102,27 @@ makeGState xml = do
         
         configInfoConsoleTV infoTV infoTBuf
 
-        evalLbl `on` labelActiveCurrentLink $ do
-          notebookSetCurrentPage infoEvalNB 1
-          widgetGrabFocus commandEntry
+        void $ evalLbl `on` labelActiveCurrentLink $ do
+                       notebookSetCurrentPage infoEvalNB 1
+                       widgetGrabFocus commandEntry
           
-        infoLbl `on` labelActiveCurrentLink $ do
-          notebookSetCurrentPage infoEvalNB 0
-          widgetGrabFocus infoTV
+        void $ infoLbl `on` labelActiveCurrentLink $ do
+                       notebookSetCurrentPage infoEvalNB 0
+                       widgetGrabFocus infoTV
 
-        modulesLbl `on` labelActiveCurrentLink $ do
-          cs <- io $ containerGetChildren declFrame
-          tv <- io $ getModulesTV declFrame
-          widgetGrabFocus tv
+        void $ modulesLbl `on` labelActiveCurrentLink $ do
+                          tv <- io $ getModulesTV declFrame
+                          widgetGrabFocus tv
 
-        editModulesNB `on` focusInEvent $ io $ do
-          np <- G.get editModulesNB notebookPage
-          page <- notebookGetNthPage editModulesNB np
-          when (isJust page) $ do 
-            let Just p = page
-            let sw = castToScrolledWindow p
-            chs <- containerGetChildren sw
-            widgetGrabFocus (chs !! 0)
-          return True
+        void $ editModulesNB `on` focusInEvent $ io $ do
+                             np <- G.get editModulesNB notebookPage
+                             page <- notebookGetNthPage editModulesNB np
+                             when (isJust page) $ do 
+                                  let Just p = page
+                                  let sw = castToScrolledWindow p
+                                  chs <- containerGetChildren sw
+                                  widgetGrabFocus (chs !! 0)
+                             return True
         
         let funToolbarST    = FunToolbar symbolFrameB axiomFrameB
         let funMainPanedST  = FunMainPaned mainPaned

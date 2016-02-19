@@ -32,7 +32,6 @@ createNewFileFromLoad :: Maybe TextFilePath -> Maybe String -> Maybe String ->
                          GuiMonad ()
 createNewFileFromLoad mfp mname mcode =
   getGState >>= \st ->
-  ask >>= \content -> 
     let editBook = st ^. gFunEditBook
         ebook = editBook ^. book
         fileList = editBook ^. tabFileList

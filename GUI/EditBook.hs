@@ -5,6 +5,8 @@ module GUI.EditBook where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.SourceView
 
+--import System.Glib.Attributes as Glib ( get )
+
 import Control.Lens hiding (set)
 import Control.Monad.Trans.RWS
 
@@ -54,6 +56,9 @@ configSourceView sv = io $ do
         sourceViewSetIndentOnTab sv setIndentOnTab
         sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
         sourceViewSetShowLineNumbers sv True
+        
+        return ()
+
         
 
 -- | Configuración de la ventana de scroll, que contiene el campo de texto.

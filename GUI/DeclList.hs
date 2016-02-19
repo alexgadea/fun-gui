@@ -122,7 +122,6 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ m ^. modName ) (newDecls
                                     , inProps $ decls $ _invalidDecls m
                                     )
                                     
-                                    
         newDeclDer :: Module -> Forest DeclItem
         newDeclDer m = toForestDer  ( "Derivaciones"
                                     , _derivs $ _validDecls m
@@ -140,11 +139,12 @@ toForestEnv = map (\m -> Node (strToDeclItem $ unpack $ m ^. modName ) (newDecls
                      newDeclDer m ++ newVerif m
 
 newValidItem :: Decl a => a -> Maybe DeclPos -> DeclItem
-newValidItem   = newItem (Just DChecked) Nothing 
+newValidItem   = newItem (Just DChecked) Nothing
 newInvalidItem :: Decl a => Maybe String -> a -> Maybe DeclPos -> DeclItem
-newInvalidItem = newItem (Just DError) 
+newInvalidItem = newItem (Just DError)
 
-newItem :: Decl a => Maybe DeclState -> Maybe String -> a -> Maybe DeclPos -> DeclItem
+newItem :: Decl a => Maybe DeclState -> Maybe String -> a ->
+                    Maybe DeclPos -> DeclItem
 newItem v err d p = DeclItem (unpack $ getNameDecl d) p err v
 
 -- | Crea un treeStore para los DeclItem.

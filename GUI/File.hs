@@ -1,4 +1,4 @@
-{-# Language DoAndIfThenElse, OverloadedStrings #-}
+{-# Language DoAndIfThenElse, BangPatterns, OverloadedStrings #-}
 module GUI.File where
 
 import Graphics.UI.Gtk hiding (get)
@@ -67,8 +67,7 @@ closeCurrentFile = getGState >>= \st -> do
            if (quantPages == 0) 
            then return ()
            else do let updateFileList = upList cPageNum fileList
-                   updateGState (gFunEditBook .~ FunEditBook ebook updateFileList)
-                   
+                   updateGState (gFunEditBook .~ FunEditBook ebook updateFileList)                  
     where upList :: Int -> [a] -> [a]
           upList n ls = take n ls ++ drop (n+1) ls
 
@@ -90,13 +89,15 @@ checkSelectFile =
                                        resetEnv
                                        updateModulesFunEditBook eb name
         notLoadModule err = updEnv [] Nothing >> printErrorMsg (show err)
-        msgModule m name | allDeclsValid m = "Módulo "++ unpack name ++ " cargado."
-                         | otherwise = "Módulo "++ unpack name ++ " cargado con errores."
+        msgModule m name | allDeclsValid m = "Módulo "++ unpack name ++
+                                             " cargado."
+                         | otherwise = "Módulo "++ unpack name ++
+                                       " cargado con errores."
 
 updEnv :: Environment -> Maybe ModName -> GuiMonad ()
-updEnv env mname = updateGState (gFunEnv .~ env) >>
-                   updateInfoPaned env mname >>
-                   updateEvalEnv
+updEnv !env !mname = updateGState (gFunEnv .~ env) >>
+                     updateInfoPaned env mname >>
+                     updateEvalEnv
 
 -- | Función para cargar un archivo en base a un filepath.
 openFileFromPath :: TextFilePath -> GuiMonad ()

@@ -35,7 +35,6 @@ configLanguage buf = io $ do
         Nothing -> putStrLn "WARNING: No se puede cargar el highlighting para el lenguaje"
         Just lang -> do
             langId <- (sourceLanguageGetId lang :: IO Text)
-            putStrLn ("Lenguaje = "++show langId)
             sourceBufferSetLanguage buf (Just lang)
 
             sourceBufferSetHighlightSyntax buf True
@@ -110,8 +109,7 @@ createTextEdit mcode = do
 getTextViewFilePath :: Int -> GuiMonad (Maybe TextFilePath)
 getTextViewFilePath i = do
                 st <- getGState
-                let feditBook = st ^. gFunEditBook 
-                maybe (return Nothing) (return . takeFilePath) feditBook
+                return . takeFilePath $ st ^. gFunEditBook 
     where
         takeFilePath :: FunEditBook -> Maybe TextFilePath
         takeFilePath feb = (feb ^. tabFileList) !! i

@@ -30,26 +30,20 @@ import Fun.Module(allDeclsValid,modName,ModName)
 -- | Crea un campo de texto al realizar una carga por archivo.
 createNewFileFromLoad :: Maybe TextFilePath -> Maybe String -> Maybe String -> 
                          GuiMonad ()
-createNewFileFromLoad mfp mname mcode = getGState >>= \st -> ask >>= \content ->
-    case st ^. gFunEditBook of
-        Nothing -> 
-            let editorPaned = content ^. (gFunEditorPaned . epaned) in
-            io (panedGetChild1 editorPaned) >>= \(Just drawArea) ->
-            io (containerRemove (castToContainer editorPaned) drawArea) >>
-            createEditBook mname mcode >>= \editBook -> 
-            updateGState ((.~) gFunEditBook (Just $ FunEditBook editBook [mfp]))
-        Just editBook -> 
-            let ebook = editBook ^. book
-                fileList = editBook ^. tabFileList
-            in
-            createTextEdit mcode >>= \textEdit ->
-            (\name -> 
-            io (notebookAppendPage ebook textEdit name) >>
-            io (notebookGetNPages ebook) >>= \nPages ->
-            io (notebookSetCurrentPage ebook (nPages-1)) >>
-            return ()) (fromMaybe "blank" mname) >>
-            (updateGState ((.~) gFunEditBook 
-                                (Just $ FunEditBook ebook (fileList ++ [mfp]))))
+createNewFileFromLoad mfp mname mcode =
+  getGState >>= \st ->
+  ask >>= \content -> 
+    let editBook = st ^. gFunEditBook
+        ebook = editBook ^. book
+        fileList = editBook ^. tabFileList
+    in
+    createTextEdit mcode >>= \textEdit ->
+    (\name -> 
+    io (notebookAppendPage ebook textEdit name) >>
+    io (notebookGetNPages ebook) >>= \nPages ->
+    io (notebookSetCurrentPage ebook (nPages-1)) >>
+    return ()) (fromMaybe "blank" mname) >>
+    updateGState (gFunEditBook .~ FunEditBook ebook (fileList ++ [mfp]))
 
 -- | Crea un nuevo archivo en blanco.
 createNewFile :: GuiMonad ()
@@ -57,9 +51,8 @@ createNewFile = createNewFileFromLoad Nothing Nothing Nothing
 
 -- | Cierra el archivo presente.
 closeCurrentFile :: GuiMonad ()
-closeCurrentFile = getGState >>= \st ->
-        when (isJust (st ^. gFunEditBook)) $ do
-           let (Just editBook) = st ^. gFunEditBook
+closeCurrentFile = getGState >>= \st -> do
+           let editBook = st ^. gFunEditBook
            let ebook    = editBook ^. book
            let fileList = editBook ^. tabFileList
            let env = st ^. gFunEnv 
@@ -72,9 +65,9 @@ closeCurrentFile = getGState >>= \st ->
            unless (null env || pack myModName /= head env ^. modName) (updEnv [] Nothing)
            -- Si no quedan módulos abiertos, cerramos el EditBook.
            if (quantPages == 0) 
-           then updateGState (gFunEditBook .~ Nothing)
+           then return ()
            else do let updateFileList = upList cPageNum fileList
-                   updateGState (gFunEditBook .~ (Just $ FunEditBook ebook updateFileList))
+                   updateGState (gFunEditBook .~ FunEditBook ebook updateFileList)
                    
     where upList :: Int -> [a] -> [a]
           upList n ls = take n ls ++ drop (n+1) ls
@@ -83,9 +76,8 @@ closeCurrentFile = getGState >>= \st ->
 -- validarlo.
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
-    getGState >>= \st ->
-    when (isJust $ st ^. gFunEditBook) $ do 
-        let (Just editBook) = st ^. gFunEditBook
+    getGState >>= \st -> do 
+        let (editBook) = st ^. gFunEditBook
         (mfp,_,_) <- getTextEditFromFunEditBook editBook
         if (not $ isJust mfp)
         then saveAtFile
@@ -165,10 +157,8 @@ setFileFilter fChooser patterns title = do
 
 -- | Guardado directo de un archivo.
 saveFile :: GuiMonad ()
-saveFile = getGState >>= \st ->
-        case st ^. gFunEditBook of
-            Nothing -> return ()
-            Just editBook -> do
+saveFile = getGState >>= \st -> do
+                let editBook = st ^. gFunEditBook 
                 (mfp,_,textV) <- getTextEditFromFunEditBook editBook
                 case mfp of
                     Nothing -> saveAtFile
@@ -185,10 +175,8 @@ saveFile = getGState >>= \st ->
 
 -- | Guardado en, de un archivo.
 saveAtFile :: GuiMonad ()
-saveAtFile = getGState >>= \st ->
-        case st ^. gFunEditBook of
-            Nothing -> return ()
-            Just editBook -> do
+saveAtFile = getGState >>= \st -> do
+                let editBook = st ^. gFunEditBook 
                 (_,name,textV) <- getTextEditFromFunEditBook editBook
                 code <- getCode textV
                 let nFile = if name == "blank" then "" else name
@@ -208,7 +196,7 @@ saveAtFile = getGState >>= \st ->
                 let fileList = editBook ^. tabFileList
                 cPageNum  <- io $ notebookGetCurrentPage ebook
                 let updateFileList = upList fp cPageNum fileList
-                updateGState ((.~) gFunEditBook (Just $ FunEditBook ebook updateFileList))
+                updateGState (gFunEditBook .~ (FunEditBook ebook updateFileList))
         upList :: FilePath -> Int -> [Maybe TextFilePath] -> [Maybe TextFilePath]
         upList fp n ls = (init $ take (n+1) ls) ++ [Just $ pack fp] ++ (drop (n+1) ls)
 

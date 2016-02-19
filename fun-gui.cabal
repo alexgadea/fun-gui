@@ -14,6 +14,7 @@ Bug-reports:         https://github.com/alexgadea/fun-gui/issues
 
 data-dir: data
 data-files: fun.ui,
+            fun-test.ui,
             sourceview/language-specs/*.lang, 
             sourceview/language-specs/*.rng, 
             sourceview/styles/*.xml
@@ -28,7 +29,7 @@ Executable fun-gui
     HS-Source-Dirs: .
     other-modules: Paths_fun_gui
     Main-is: GUI/Main.hs
-    GHC-options: -Odph -Wall -threaded
+    GHC-options: -Odph -Wall -threaded 
     Build-depends:       base, containers >= 0.4, reference >= 0.1, 
                          text >= 0.11.1.5, gtk >= 0.12.1, 
                          equ >= 0.2, bytestring >= 0.9.1.10, cereal >= 0.3.3.0,

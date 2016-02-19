@@ -2,12 +2,15 @@
 module GUI.Gui where
 
 import Graphics.UI.Gtk hiding (get)
+import qualified Graphics.UI.Gtk as G
 
 import Control.Lens
+import Control.Monad
 import Control.Monad.Trans.RWS
 
 import Data.Text (pack)
 import Data.Reference
+import Data.Maybe
 
 import GUI.File
 import GUI.GState
@@ -89,6 +92,7 @@ makeGState xml = do
         funStatusbar <- builderGetObject xml castToStatusbar "statusBar"
         infoTV <- builderGetObject xml castToTextView "infoConsoleTView"
         infoEvalNB <- builderGetObject xml castToNotebook "infoEvalNB"
+        editModulesNB <- builderGetObject xml castToNotebook "editModulesNB"
         
         panedSetPosition edPaned 400
         
@@ -110,6 +114,16 @@ makeGState xml = do
           cs <- io $ containerGetChildren declFrame
           tv <- io $ getModulesTV declFrame
           widgetGrabFocus tv
+
+        editModulesNB `on` focusInEvent $ io $ do
+          np <- G.get editModulesNB notebookPage
+          page <- notebookGetNthPage editModulesNB np
+          when (isJust page) $ do 
+            let Just p = page
+            let sw = castToScrolledWindow p
+            chs <- containerGetChildren sw
+            widgetGrabFocus (chs !! 0)
+          return True
         
         let funToolbarST    = FunToolbar symbolFrameB axiomFrameB
         let funMainPanedST  = FunMainPaned mainPaned
@@ -119,8 +133,9 @@ makeGState xml = do
         let funCommConsole  = FunCommConsole commandEntry commTBuf commTV
         let funInfoConsole  = FunInfoConsole infoTBuf infoTV
         let funEditorPaned  = FunEditorPaned edPaned
+        let funEditBook     = FunEditBook editModulesNB []
         
-        gState <- newRef $ GState [] Nothing (FunEvalState Nothing initEvalEnv Nothing)
+        gState <- newRef $ GState [] funEditBook (FunEvalState Nothing initEvalEnv Nothing)
         let gReader = GReader window 
                               funToolbarST
                               funMainPanedST

@@ -100,8 +100,7 @@ eventsAxiomList tv list =
 putOnText :: TreeStore AxiomItem -> TreePath -> GuiMonad ()
 putOnText list path = 
         unless (length path == 1) $ getGState >>= \st ->
-            return (st ^. gFunEditBook) >>= \mEditBook ->
-            maybe (return ()) (configSelection path) mEditBook
+            configSelection path $ st ^. gFunEditBook 
     where
         justification :: [Relation] -> Int -> String -> String
         justification rs i j = (unpack $ relRepr (rs!!i)) ++ " { " ++ j ++ " }"

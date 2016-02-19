@@ -208,12 +208,10 @@ onSelection list tree = do
                 let (Just pos) = mpos
                 s <- getGState
                 let ebook = s ^. gFunEditBook
-                when (isJust ebook) $ do
-                    let (Just eb) = ebook
-                    let notebook = eb ^. book
-                    let mName = moduleName pos
+                let notebook = ebook ^. book
+                let mName = moduleName pos
                  
-                    io $ containerForeach notebook
+                io $ containerForeach notebook
                             (\child -> notebookGetTabLabelText notebook child >>=
                             \(Just labtext) ->
                             (when (labtext == unpack mName) $

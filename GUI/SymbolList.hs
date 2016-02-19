@@ -84,8 +84,7 @@ eventsSymbolList iv list = do
 oneSelection :: ListStore SymItem -> TreePath -> GuiMonad ()
 oneSelection list path = do
                 s <- getGState
-                let mEditBook = s ^. gFunEditBook
-                maybe (return ()) configSelection mEditBook
+                configSelection $ s ^. gFunEditBook
     where
         configSelection :: FunEditBook -> GuiMonad ()
         configSelection editBook = 

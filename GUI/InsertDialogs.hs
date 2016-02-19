@@ -71,19 +71,17 @@ createDeclDialog dtype = io $ do
 runDialog :: DeclDialog -> GuiMonad ()
 runDialog decDlg = 
     getGState >>= \st ->
-    case st ^. gFunEditBook of
-        Nothing -> printErrorMsg "No hay ningún archivo abierto"
-        Just fbook -> getTextEditFromFunEditBook fbook >>= \(_,_,tv) ->
-                      io $ do
-                          let dlg = declDialog decDlg
-                          setTitleDlg
-                          vbox <- dialogGetUpper dlg
-                          widgetShowAll vbox
-                          response <- dialogRun dlg
-                          case response of
-                               ResponseOk -> getTextDecl >>= insertText tv
-                               _ -> return ()
-                          widgetDestroy dlg
+    getTextEditFromFunEditBook (st ^. gFunEditBook) >>= \(_,_,tv) ->
+    io $ do
+        let dlg = declDialog decDlg
+        setTitleDlg
+        vbox <- dialogGetUpper dlg
+        widgetShowAll vbox
+        response <- dialogRun dlg
+        case response of
+             ResponseOk -> getTextDecl >>= insertText tv
+             _ -> return ()
+        widgetDestroy dlg
 
 
     where getTextDecl :: IO String

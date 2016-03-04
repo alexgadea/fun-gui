@@ -37,7 +37,7 @@ configSymFrameButton = do
                 visible <- io $ Gtk.get sf widgetVisible
                 io $ toggleToolButtonSetActive sfButton (not visible)
                 if visible
-                  then io $ widgetHideAll sf
+                  then io $ widgetHide sf
                   else io $ widgetShowAll sf
                 
                 
@@ -50,7 +50,7 @@ configSymbolList = do
                 list <- io listSymbols
                 _ <- io $ setupSymbolList iv list
                 eventsSymbolList iv list                
-                io $ widgetHideAll sf
+                io $ widgetHide sf
                 
                 return ()
 

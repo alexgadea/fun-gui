@@ -182,7 +182,7 @@ setupDeclList env tv = listDecls (reverse env) >>= setupDList
                 treeViewAppendColumn tv colSt >>
                 treeViewAppendColumn tv colName >>
                 treeViewGetSelection tv >>= \tree ->
-                onSelectionChanged tree (evalRWST (onSelection list tree) content s >> return ()) >>
+                on tree treeSelectionSelectionChanged (evalRWST (onSelection list tree) content s >> return ()) >>
                 return list    
 
 declStateImg :: Maybe DeclState -> Maybe StockId

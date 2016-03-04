@@ -55,7 +55,6 @@ configSourceView sv = io $ do
         sourceViewSetIndentOnTab sv setIndentOnTab
         sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
         sourceViewSetShowLineNumbers sv True
-        
         return ()
 
         

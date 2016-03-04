@@ -46,7 +46,7 @@ axListToggle = do
                 visible <- io $ Gtk.get af widgetVisible
                 io $ toggleToolButtonSetActive afButton (not visible)
                 if visible
-                  then io $ widgetHideAll af
+                  then io $ widgetHide af
                   else io $ widgetShowAll af
 
 -- | Configuración general de la lista de axiomas.
@@ -63,7 +63,7 @@ configAxiomList = do
             axlist <- io listAxioms
             io $ setupAxiomList tv axlist
             eventsAxiomList tv axlist
-            io $ widgetHideAll af
+            io $ widgetHide af
             
             return ()
 
@@ -89,7 +89,7 @@ eventsAxiomList tv list =
             treeSelectionUnselectAll tree >>
             treeViewSetModel tv list >> widgetShowAll tv >> return tree) 
             >>= \tree -> ask >>= \content -> get >>= \st ->
-            io (onSelectionChanged tree (eval (showAxiom list tree) content st))
+            io (on tree treeSelectionSelectionChanged (eval (showAxiom list tree) content st))
             >> 
             io (tv `on` rowActivated $ \path _ -> eval (putOnText list path) content st) >>
             return ()

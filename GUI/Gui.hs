@@ -20,7 +20,9 @@ import GUI.EvalConsole
 import GUI.InfoConsole
 import GUI.Utils
 import GUI.DeclList
-import qualified GUI.InsertDialogs as IDialogs
+
+onActivate' ::  MenuItemClass self => self -> IO () -> IO ()
+onActivate' menu action = on menu menuItemActivated action >> return ()
 
 mainFunGui :: Builder -> [FilePath] -> IO ()
 mainFunGui xml fps = do 
@@ -28,7 +30,6 @@ mainFunGui xml fps = do
 
                 (_,_,_) <- runRWST (do  configWindow
                                         configMenuBarButtons  xml
-                                        configInsertMenuItems xml 
                                         configToolBarButtons  xml
                                         configCommandConsole
                                         configSymbolList
@@ -36,29 +37,6 @@ mainFunGui xml fps = do
                                         mapM_ (openFileFromPath . pack) fps
                                         ) gReader gState
                 return ()
-
--- | Configura los botones de insert de declaraciones del menu.
-configInsertMenuItems :: Builder -> GuiMonad ()
-configInsertMenuItems xml = ask >>= \content -> get >>= \st -> 
-            io $ do
-            specItem <- builderGetObject xml castToImageMenuItem "insertSpecItem"
-            funItem  <- builderGetObject xml castToImageMenuItem "insertFunItem"
-            valItem  <- builderGetObject xml castToImageMenuItem "insertValItem"
-            -- falta implementar thmItem
-            _ <- builderGetObject xml castToImageMenuItem "insertThmItem"
-            
-            _ <- onActivateLeaf specItem (createRun IDialogs.Spec content st)
-            _ <- onActivateLeaf funItem  (createRun IDialogs.Fun  content st)
-            _ <- onActivateLeaf valItem  (createRun IDialogs.Val  content st)
-            
-            return ()
-    where
-        createRunDialog :: IDialogs.DeclType -> GuiMonad ()
-        createRunDialog dtype = IDialogs.createDeclDialog dtype >>= IDialogs.runDialog
-        createRun :: IDialogs.DeclType -> GReader -> GStateRef -> IO ()
-        createRun dtype content str = do
-                            _ <- evalRWST (createRunDialog dtype) content str
-                            return ()
 
 -- | Genera el estado inicial de la mónada.
 makeGState :: Builder -> IO (GReader,GStateRef) 
@@ -188,13 +166,13 @@ configToolBarButtons xml = ask >>= \content -> get >>= \st ->
             
             checkB <- builderGetObject xml castToMenuItem "checkButton"
             
-            _ <- onActivateLeaf newB    $ eval createNewFile    content st
-            _ <- onActivateLeaf openB   $ eval openFile         content st
-            _ <- onActivateLeaf saveB   $ eval saveFile         content st
-            _ <- onActivateLeaf saveAsB $ eval saveAtFile       content st
-            _ <- onActivateLeaf closeB  $ eval closeCurrentFile content st
-            _ <- onActivateLeaf checkB  $ eval checkSelectFile  content st
-            _ <- onActivateLeaf quitB   $ widgetDestroy window
+            _ <- onActivate' newB    $ eval createNewFile    content st
+            _ <- onActivate' openB   $ eval openFile         content st
+            _ <- onActivate' saveB   $ eval saveFile         content st
+            _ <- onActivate' saveAsB $ eval saveAtFile       content st
+            _ <- onActivate' closeB  $ eval closeCurrentFile content st
+            _ <- onActivate' checkB  $ eval checkSelectFile  content st
+            _ <- onActivate' quitB   $ widgetDestroy window
             
             return ()
 
@@ -205,7 +183,7 @@ configWindow = ask >>= \content ->
             let window = content ^. gFunWindow
             windowMaximize window
             widgetShowAll window
-            _ <- onDestroy window mainQuit
+            _ <- window `on` unrealize $ mainQuit
             return ()
             
 eval :: GuiMonad () -> GReader -> GStateRef -> IO ()

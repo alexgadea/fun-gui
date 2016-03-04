@@ -20,8 +20,8 @@ configConsoleTV tv buf = do
                 , textTagForegroundSet := True]
         textTagTableAdd tagTable tag'
         
-        widgetModifyBase tv StateNormal backColorCommTV
-        widgetModifyText tv StateNormal textColorCommTV
+        widgetModifyBg tv StateNormal backColorCommTV
+        widgetModifyFg tv StateNormal textColorCommTV
         widgetShowAll tv        
 
 printInfoMsg :: String -> TextBuffer -> TextView -> IO ()

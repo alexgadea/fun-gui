@@ -111,8 +111,8 @@ putOnText list path =
             io (treeStoreGetValue list tpath) >>= \(ax,_) ->
             io (relationListStore >>= \lsrel ->
                 listStoreToList lsrel) >>= \l ->
-             comboBoxGetActive axRel >>= \i ->
-             addToCursorBuffer tv $ justification l i ax)
+            io (comboBoxGetActive axRel) >>= \i ->
+            addToCursorBuffer tv $ justification l i ax)
 
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do

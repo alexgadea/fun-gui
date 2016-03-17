@@ -54,19 +54,19 @@ closeCurrentFile = getGState >>= \st -> do
            let editBook = st ^. gFunEditBook
            let ebook    = editBook ^. book
            let fileList = editBook ^. tabFileList
-           let env = st ^. gFunEnv 
-           (_,myModName,_) <- getTextEditFromFunEditBook editBook
-           cPageNum  <- io $ notebookGetCurrentPage ebook
-           io $ notebookRemovePage ebook cPageNum
-           quantPages <- io $ notebookGetNPages ebook
-           -- Si el archivo está cargado, eliminamos todas las declaraciones
-           -- de la barra de la izquierda.
-           unless (null env || pack myModName /= head env ^. modName) (updEnv [] Nothing)
-           -- Si no quedan módulos abiertos, cerramos el EditBook.
-           if (quantPages == 0) 
-           then return ()
-           else do let updateFileList = upList cPageNum fileList
-                   updateGState (gFunEditBook .~ FunEditBook ebook updateFileList)                  
+           let env = st ^. gFunEnv
+           withTextEditFromFunEditBook editBook $ \ (_,myModName,_) -> do
+             cPageNum  <- io $ notebookGetCurrentPage ebook
+             io $ notebookRemovePage ebook cPageNum
+             quantPages <- io $ notebookGetNPages ebook
+             -- Si el archivo está cargado, eliminamos todas las declaraciones
+             -- de la barra de la izquierda.
+             unless (null env || pack myModName /= head env ^. modName) (updEnv [] Nothing)
+             -- Si no quedan módulos abiertos, cerramos el EditBook.
+             if (quantPages == 0) 
+             then return ()
+             else do let updateFileList = upList cPageNum fileList
+                     updateGState (gFunEditBook .~ FunEditBook ebook updateFileList)
     where upList :: Int -> [a] -> [a]
           upList n ls = take n ls ++ drop (n+1) ls
 
@@ -75,11 +75,11 @@ closeCurrentFile = getGState >>= \st -> do
 checkSelectFile :: GuiMonad ()
 checkSelectFile = 
     getGState >>= \st -> do 
-        let (editBook) = st ^. gFunEditBook
-        (mfp,_,_) <- getTextEditFromFunEditBook editBook
-        if (not $ isJust mfp)
-        then saveAtFile
-        else saveFile >> (io . loadMainModuleFromFile) (fromJust mfp) >>=
+        let editBook = st ^. gFunEditBook
+        withTextEditFromFunEditBook editBook $ \ (mfp,_,_) -> do
+          if (not $ isJust mfp)
+          then saveAtFile
+          else saveFile >> (io . loadMainModuleFromFile) (fromJust mfp) >>=
                 either notLoadModule (loadModule editBook)
 
   where loadModule eb (env, name) = do updEnv env (Just name)
@@ -158,8 +158,8 @@ setFileFilter fChooser patterns title = do
 -- | Guardado directo de un archivo.
 saveFile :: GuiMonad ()
 saveFile = getGState >>= \st -> do
-                let editBook = st ^. gFunEditBook 
-                (mfp,_,textV) <- getTextEditFromFunEditBook editBook
+                let editBook = st ^. gFunEditBook
+                withTextEditFromFunEditBook editBook $ \ (mfp,_,textV) -> do 
                 case mfp of
                     Nothing -> saveAtFile
                     Just fp -> getCode textV >>= save (unpack fp)
@@ -176,13 +176,13 @@ saveFile = getGState >>= \st -> do
 -- | Guardado en, de un archivo.
 saveAtFile :: GuiMonad ()
 saveAtFile = getGState >>= \st -> do
-                let editBook = st ^. gFunEditBook 
-                (_,name,textV) <- getTextEditFromFunEditBook editBook
-                code <- getCode textV
-                let nFile = if name == "blank" then "" else name
-                mfp <- saveDialog "Guardar programa" (nFile++".fun") funFileFilter code
-                when (isJust mfp) (updateFL editBook $ fromJust mfp)
-                return ()
+                let editBook = st ^. gFunEditBook
+                withTextEditFromFunEditBook editBook $ \(_,name,textV) -> do
+                  code <- getCode textV
+                  let nFile = if name == "blank" then "" else name
+                  mfp <- saveDialog "Guardar programa" (nFile++".fun") funFileFilter code
+                  when (isJust mfp) (updateFL editBook $ fromJust mfp)
+                  return ()
     where
         getCode :: TextView -> GuiMonad String
         getCode textV = io $ do

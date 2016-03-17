@@ -106,19 +106,20 @@ putOnText list path =
         justification rs i j = (unpack $ relRepr (rs!!i)) ++ " { " ++ j ++ " }"
         configSelection :: TreePath -> FunEditBook -> GuiMonad ()
         configSelection tpath editBook = ask >>= \content -> 
-                return (content ^. (gFunAxiomList . gAxRel)) >>= \axRel ->
-                getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
-                io (treeStoreGetValue list tpath) >>= \(ax,_) ->
-                io (relationListStore) >>= \lsrel ->
-                io (listStoreToList lsrel) >>= \l ->
-                io (comboBoxGetActive axRel) >>= \i ->
-                addToCursorBuffer tv $ justification l i ax
+          return (content ^. (gFunAxiomList . gAxRel)) >>= \axRel ->
+          withTextEditFromFunEditBook editBook (\(_,_,tv) ->
+            io (treeStoreGetValue list tpath) >>= \(ax,_) ->
+            io (relationListStore >>= \lsrel ->
+                listStoreToList lsrel) >>= \l ->
+             comboBoxGetActive axRel >>= \i ->
+             addToCursorBuffer tv $ justification l i ax)
+
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv
                 textBufferInsertAtCursor buf repr
                 widgetGrabFocus tv
-        
+
 showAxiom :: TreeStore AxiomItem -> TreeSelection -> GuiMonad ()
 showAxiom list tree = io (treeSelectionGetSelectedRows tree) >>= \sel ->
             unless (null sel) $ return (head sel) >>= \h ->

@@ -1,3 +1,4 @@
+{-# Language DoAndIfThenElse #-}
 -- | Modulo respectivo a la parte derecha de la interfaz, es decir, el 
 -- campo de texto.
 module GUI.EditBook where
@@ -120,15 +121,23 @@ getTextViewFilePath i = do
 -- | Dado un EditBook, obtiene el campo de texto que esta seleccionado en
 -- ese momento y su nombre.
 getTextEditFromFunEditBook :: FunEditBook -> 
-                              GuiMonad (Maybe TextFilePath, String,TextView)
+                              GuiMonad (Maybe (Maybe TextFilePath, String,TextView))
 getTextEditFromFunEditBook feditBook = do
             let notebook = feditBook ^. book
             cPageNum       <- io $ notebookGetCurrentPage notebook
-            mfp            <- getTextViewFilePath cPageNum
-            Just cpSW      <- io $ notebookGetNthPage notebook cPageNum
-            Just textViewN <- io $ notebookGetTabLabelText notebook cpSW
-            [tv]           <- io $ containerGetChildren (castToContainer cpSW)
-            return (mfp,textViewN,castToTextView tv)
+            if (cPageNum < 0) then return Nothing
+            else do
+              mfp            <- getTextViewFilePath cPageNum
+              Just cpSW      <- io $ notebookGetNthPage notebook cPageNum
+              Just textViewN <- io $ notebookGetTabLabelText notebook cpSW
+              [tv]           <- io $ containerGetChildren (castToContainer cpSW)
+              return (Just (mfp,textViewN,castToTextView tv))
+
+withTextEditFromFunEditBook :: FunEditBook -> 
+                              ((Maybe TextFilePath, String,TextView) -> GuiMonad ()) ->
+                              GuiMonad ()
+withTextEditFromFunEditBook feditBook action = getTextEditFromFunEditBook feditBook >>=
+                                               maybe (return ()) action
             
 -- | similar a la anterior pero en la mónada IO. Le debemos pasar el notebook.
 getTextEditFromNotebook :: Notebook -> IO (String,TextView)

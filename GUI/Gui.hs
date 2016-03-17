@@ -72,7 +72,6 @@ makeGState xml = do
         infoEvalNB <- builderGetObject xml castToNotebook "infoEvalNB"
         editModulesNB <- builderGetObject xml castToNotebook "editModulesNB"
         
-        panedSetPosition edPaned 400
         
         commTBuf <- textViewGetBuffer commTV
         

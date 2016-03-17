@@ -88,9 +88,10 @@ oneSelection list path = do
     where
         configSelection :: FunEditBook -> GuiMonad ()
         configSelection editBook = 
-                getTextEditFromFunEditBook editBook >>= \(_,_,tv) ->
-                io (getElem list path) >>=
-                F.mapM_ (addToCursorBuffer tv)
+                getTextEditFromFunEditBook editBook >>=
+                maybe (return ()) (\(_,_,tv) ->
+                                    io (getElem list path) >>=
+                                    F.mapM_ (addToCursorBuffer tv))
         addToCursorBuffer :: TextView -> String -> GuiMonad ()
         addToCursorBuffer tv repr = io $ do
                 buf <- textViewGetBuffer tv

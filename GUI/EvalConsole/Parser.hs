@@ -22,32 +22,33 @@ type ParserCmd b = ParsecT String PExprState Identity b
         Evalúa la expresión expr hasta llegar a una expresión canónica.
 -}
 
+
 parseLoad :: ParserCmd EvalComm
 parseLoad = string "load" >>
             spaces >>
             parsePreExpr >>= \e ->
-            spaces >>
+            spaces >> eof >>
             return (Load e)
             
 parseStep :: ParserCmd EvalComm
-parseStep = string "step" >>
+parseStep = string "step" >> spaces >> eof >>
             return Step
             
 parseEval :: ParserCmd EvalComm
 parseEval = spaces >>
             parsePreExpr >>= \e ->
-            spaces >>
+            spaces >> eof >>
             return (Eval e)
             
 parseStepTrace :: ParserCmd EvalComm
-parseStepTrace = string "steptrace" >>
+parseStepTrace = string "steptrace" >> spaces >> eof >>
                  return StepTrace
 
 parseEvalTrace :: ParserCmd EvalComm
 parseEvalTrace = string "evaltrace" >>
                  spaces >>
                  parsePreExpr >>= \e ->
-                 spaces >>
+                 spaces >> eof >>
                  return (EvalTrace e)
                  
 parserCmd :: ParserCmd EvalComm
@@ -62,8 +63,8 @@ parserCmd =     (try parseLoad)
 -- | Función principal de parseo desde String
 parseFromString :: String -> Either ParseError EvalComm
 parseFromString s = 
-    if s==""
-       then return LastComm
-       else runParser parserCmd (initPExprState UseParen) "" s
+  if null s
+  then return LastComm
+  else runParser parserCmd (initPExprState UseParen) "" s
 
             

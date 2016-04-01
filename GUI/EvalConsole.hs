@@ -19,6 +19,8 @@ import GUI.Console
 import GUI.EvalConsole.Parser
 import GUI.EvalConsole.EvalComm
 
+import Text.Parsec.Error
+import Text.Parsec.Pos
 import Equ.PreExpr
 
 import Fun.Environment
@@ -74,10 +76,20 @@ scrollTV buf tv =
                                 
 -- processCmd toma un string 
 processCmd :: String -> GStateRef -> IO EvResult
-processCmd s ref = either (return . SEither.Left . ("ERROR: "++) . show)
+processCmd s ref = either showParserError
                           pcmd
                           (parseFromString s)
-    where pcmd c = 
+    where showParserError er = let col = sourceColumn $ errorPos er
+                                   msgs = errorMessages er
+                               in return $ SEither.Left $ "Error en la columna " ++ show col ++ ": "++
+                                  showErrorMessages "o"
+                                                    "Error desconocido"
+                                                    "Se esperaba"
+                                                    "No se esperaba"
+                                                    "Fin de la cadena"
+                                                    msgs
+                               
+          pcmd c = 
             readRef ref >>= \st ->
             let eExp = st ^. (gFunEvalSt . evalExpr)
                 eEnv = st ^. (gFunEvalSt . evalEnv)

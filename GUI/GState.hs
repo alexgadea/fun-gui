@@ -24,8 +24,9 @@ data FunMenuBar = FunMenuBar { _quitButton :: MenuItem }
 $(makeLenses ''FunMenuBar)
 
 -- | Información sobre los items del toolBar.
-data FunToolbar = FunToolbar { _symFrameB :: ToggleToolButton
-                             , _axFrameB :: ToggleToolButton
+data FunToolbar = FunToolbar { _symFrameCtrl :: (ToggleToolButton,CheckMenuItem)
+                             , _axFrameCtrl  :: (ToggleToolButton,CheckMenuItem)
+                             , _modFrameCtrl :: (ToggleToolButton,CheckMenuItem)
                              }
 $(makeLenses ''FunToolbar)
 

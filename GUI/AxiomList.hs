@@ -41,10 +41,11 @@ listAxioms = treeStoreNew $ forest ET.axiomGroup ++ forest eval
 axListToggle :: GuiMonad ()
 axListToggle = do
                 content <-  ask
-                let af          = content ^. (gFunAxiomList . gAxFrame)
-                let afButton    = content ^. (gFunToolbar . axFrameB)
+                let af                 = content ^. (gFunAxiomList . gAxFrame)
+                let (afButton,afItem)  = content ^. (gFunToolbar . axFrameCtrl )
                 visible <- io $ Gtk.get af widgetVisible
                 io $ toggleToolButtonSetActive afButton (not visible)
+                io $ Gtk.set afItem [ checkMenuItemActive := not visible ] 
                 if visible
                   then io $ widgetHide af
                   else io $ widgetShowAll af

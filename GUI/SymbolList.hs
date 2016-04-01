@@ -33,9 +33,10 @@ configSymFrameButton :: GuiMonad ()
 configSymFrameButton = do
                 content <-  ask
                 let sf          = content ^. (gFunSymbolList . gSymFrame)
-                let sfButton    = content ^. (gFunToolbar . symFrameB)
+                let (sfButton,sfItem)    = content ^. (gFunToolbar . symFrameCtrl)
                 visible <- io $ Gtk.get sf widgetVisible
                 io $ toggleToolButtonSetActive sfButton (not visible)
+                io $ Gtk.set sfItem [ checkMenuItemActive := not visible ]
                 if visible
                   then io $ widgetHide sf
                   else io $ widgetShowAll sf

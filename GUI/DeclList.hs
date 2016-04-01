@@ -7,6 +7,7 @@ import GUI.EditBook
 import GUI.Utils
 
 import Graphics.UI.Gtk hiding (eventButton, eventSent,get)
+import qualified Graphics.UI.Gtk as Gtk
 
 import Data.Maybe(isJust)
 import Data.Text(unpack)
@@ -276,3 +277,23 @@ getModulesTV declFrame = do
   cs <- containerGetChildren declFrame
   [tv] <- containerGetChildren (castToAlignment (head cs))
   return (castToTreeView $ tv)
+
+
+-- | Configuración del botón para activar/desactivar la lista de declaraciones.
+declListToggle :: GuiMonad ()
+declListToggle = do
+                content <-  ask
+                let declFrame  = content ^. (gFunInfoPaned . gDeclFrame)
+                let (declButton,declItem) = content ^. (gFunToolbar . modFrameCtrl)
+                let mp = content ^. (gFunMainPaned . mpaned)
+                Just vp <- io $ Gtk.get declFrame (widgetParent :: ReadWriteAttr Frame (Maybe Container) (Maybe Viewport))
+                Just sw <- io $ Gtk.get (toWidget vp) (widgetParent :: ReadWriteAttr Widget (Maybe Container) (Maybe ScrolledWindow))
+                Just ib <- io $ Gtk.get (toWidget sw) (widgetParent :: ReadWriteAttr Widget (Maybe Container) (Maybe HBox))
+                visible <- io $ Gtk.get (toWidget ib) widgetVisible
+                io $ toggleToolButtonSetActive declButton (not visible)
+                io $ Gtk.set declItem [ checkMenuItemActive := not visible ]                 
+                if visible
+                  then io $ widgetHide ib >> Gtk.set mp [ panedPosition := 0 ]
+                  else io $ Gtk.set mp [ panedPosition := 300 ] >>
+                            widgetSetSizeRequest ib 300 (-1) >>
+                            widgetShowAll ib

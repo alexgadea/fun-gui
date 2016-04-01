@@ -111,7 +111,10 @@ makeGState xml = do
         let funEditorPaned  = FunEditorPaned edPaned
         let funEditBook     = FunEditBook editModulesNB []
         
-        gState <- newRef $ GState [] funEditBook (FunEvalState Nothing initEvalEnv Nothing)
+        gState <- newRef $ GState []
+                                  funEditBook
+                                  (FunEvalState Nothing initEvalEnv Nothing)
+                                  Nothing
         let gReader = GReader window 
                               funToolbarST
                               funMainPanedST
@@ -184,9 +187,6 @@ configWindow = ask >>= \content ->
             widgetShowAll window
             _ <- window `on` unrealize $ mainQuit
             return ()
-            
-eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
-eval action content str = evalRWST action content str >> return ()
 
 -- | Mensaje de error en caso de no encontrar el archivo glade correspondiente.
 msgErrGladeNotFound :: String

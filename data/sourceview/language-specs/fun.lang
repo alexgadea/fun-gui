@@ -30,8 +30,9 @@
   
   <styles>
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
-    <style id="declaration" _name="Declaration Type" map-to="def:declaration"/>
     <style id="type" _name="Data Type" map-to="def:type"/>
+    <style id="underlined" _name="Underlined" map-to="def:underlined"/>
+    <style id="declaration" _name="Declaration Type" map-to="def:declaration"/>
     <style id="specblock" _name="Specification" map-to="def:specblock"/>
     <style id="funblock" _name="Function" map-to="def:funblock"/>
     <style id="valblock" _name="Val" map-to="def:valblock"/>

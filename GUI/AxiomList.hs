@@ -18,7 +18,7 @@ import Control.Monad (unless)
 import Control.Monad.Trans.RWS (evalRWST,ask,get)
 import qualified Data.Foldable as F (mapM_) 
 
-import GUI.GState
+import GUI.GState hiding (eval)
 import GUI.Utils
 import GUI.EditBook
 

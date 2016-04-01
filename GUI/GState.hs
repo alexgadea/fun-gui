@@ -6,6 +6,7 @@ import Fun.Environment
 import Fun.Parser
 import Fun.Eval.Eval(EvalEnv,createEvalEnv)
 
+import GUI.Completion
 import GUI.EvalConsole.EvalComm
 
 import qualified Equ.PreExpr as Equ
@@ -100,9 +101,10 @@ $(makeLenses ''GReader)
 -- | Tipo de mónada de estado, llevamos el environment de un modulo bien 
 -- chequeado y la info sobre la parte derecha de la interfaz, es decir, 
 -- la que contiene los campos de texto para escribir programas.
-data GState = GState { _gFunEnv :: Environment
-                     , _gFunEditBook  :: FunEditBook
-                     , _gFunEvalSt :: FunEvalState
+data GState = GState { _gFunEnv        :: Environment
+                     , _gFunEditBook   :: FunEditBook
+                     , _gFunEvalSt     :: FunEvalState
+                     , _gFunCompletion :: Maybe Completion
                      }
 $(makeLenses ''GState)
 
@@ -146,3 +148,6 @@ updateEvalEnv = getGState >>= \st ->
     let lcomm = st ^. (gFunEvalSt . evalLComm) in
         get >>= liftIO . newEvalEnv >>= \eEnv ->
         updateGState ((.~) gFunEvalSt (FunEvalState Nothing eEnv lcomm))
+
+eval :: GuiMonad () -> GReader -> GStateRef -> IO ()
+eval action content str = evalRWST action content str >> return ()

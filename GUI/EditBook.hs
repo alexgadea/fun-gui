@@ -6,15 +6,16 @@ module GUI.EditBook where
 import Graphics.UI.Gtk hiding (get)
 import Graphics.UI.Gtk.SourceView
 
---import System.Glib.Attributes as Glib ( get )
-
 import Control.Lens hiding (set)
+import Control.Monad (void)
 import Control.Monad.Trans.RWS
 
-import Data.Text  (unpack)
+import Data.Text  (Text, unpack, pack)
+import qualified Data.Text as T (concat,length)
 import Data.Maybe (fromMaybe)
 
 import GUI.GState
+import GUI.Completion
 import GUI.Config
 import GUI.Utils
 
@@ -50,20 +51,49 @@ configLanguage buf = io $ do
 
 -- | Configuración del sourceView.
 configSourceView :: SourceView -> GuiMonad ()
-configSourceView sv = io $ do
+configSourceView sv = ask >>= \cnt -> get >>= \stref ->
+   io $ do
         sourceViewSetIndentWidth sv funIdentWidth
         sourceViewSetAutoIndent sv autoIdent
         sourceViewSetIndentOnTab sv setIndentOnTab
         sourceViewSetInsertSpacesInsteadOfTabs sv spacesInsteadTab
         sourceViewSetShowLineNumbers sv True
-        return ()
 
-        
+        void $ io $ on sv keyPressEvent    $ deleteCompl cnt stref
+        void $ io $ on sv moveCursor       $ stopCompl cnt stref
+        void $ io $ on sv buttonPressEvent $ eventStopCompl cnt stref
+        void $ io $ on sv focusOutEvent    $ eventStopCompl cnt stref
+
+        return ()
+    where
+        eventStopCompl :: GReader -> GStateRef -> EventM t Bool
+        eventStopCompl cnt stref = io $
+                  eval (updateGState (gFunCompletion .~ Nothing)) cnt stref >>
+                  return False
+
+        stopCompl :: GReader -> GStateRef -> MovementStep -> Int -> Bool -> IO ()
+        stopCompl cnt stref _ _ _ =
+                  eval (updateGState (gFunCompletion .~ Nothing)) cnt stref
+
+        deleteCompl :: GReader -> GStateRef -> EventM EKey Bool
+        deleteCompl cnt stref = eventKeyName >>= \key ->
+                     if key == pack "BackSpace"
+                     then io (eval delCompl cnt stref >> return False)
+                     else return False
+
+        delCompl :: GuiMonad ()
+        delCompl = updateGState
+                   (\st -> maybe
+                           st
+                           (\cpl -> (.~) gFunCompletion
+                                    (Just $ rmCharToCompletion cpl) st)
+                           (st ^. gFunCompletion)
+                   )
 
 -- | Configuración de la ventana de scroll, que contiene el campo de texto.
 configScrolledWindow :: ScrolledWindow -> GuiMonad ()
 configScrolledWindow sw = io $
-            set sw [ scrolledWindowHscrollbarPolicy := PolicyAutomatic 
+            set sw [ scrolledWindowHscrollbarPolicy := PolicyAutomatic
                    , scrolledWindowVscrollbarPolicy := PolicyAlways
                    ]
 
@@ -80,19 +110,57 @@ createTextEntry :: Maybe String -> GuiMonad SourceView
 createTextEntry mcode = do
             buf <- io $ sourceBufferNew Nothing
             configLanguage buf
-            
+
             maybe (return ()) (io . loadCode buf) mcode
-            
+
+            configSourceBuffer buf
+
             sourceview <- io $ sourceViewNewWithBuffer buf
 
             configSourceView sourceview
-            
+
             return sourceview
     where
         loadCode :: TextBufferClass tbuffer => tbuffer -> String -> IO ()
         loadCode buf code = do
                 start <- textBufferGetStartIter buf
                 textBufferInsert buf start code
+
+configSourceBuffer :: SourceBuffer -> GuiMonad ()
+configSourceBuffer sb = ask >>= \cnt -> get >>= \stref -> io $ do
+        void $ after sb bufferInsertText $ insCompl cnt stref
+   where
+        insCompl :: GReader -> GStateRef -> TextIter -> Text -> IO ()
+        insCompl cnt stref ti str = eval (putCompletion ti str) cnt stref
+
+        putCompletion :: TextIter -> Text -> GuiMonad ()
+        putCompletion ti str
+               | checkBeginChar str =
+                 updateGState (gFunCompletion .~ (Just $ newCompletion))
+               | checkEndChar str = tryPutSymbol ti str
+               | otherwise =
+                 getGState >>= \st ->
+                 maybe (return ()) (putCompl str) (st ^. gFunCompletion)
+
+        tryPutSymbol :: TextIter -> Text -> GuiMonad ()
+        tryPutSymbol ti str = getGState >>= \st ->
+                          maybe (updateGState (gFunCompletion .~ Nothing))
+                                (replaceSymbol ti str)
+                                (maybe Nothing
+                                       checkCompletion (st ^. gFunCompletion))
+
+        replaceSymbol :: TextIter -> Text -> (Text, Text) -> GuiMonad ()
+        replaceSymbol eit str (sy,nname) = io (
+                      textIterCopy eit >>= \bit ->
+                      textIterBackwardChars bit (T.length nname + 2) >>
+                      textBufferSelectRange sb bit eit >>
+                      textBufferDeleteSelection sb True True >>
+                      textBufferInsertAtCursor sb (T.concat [sy,str])) >>
+                      updateGState (gFunCompletion .~ Nothing)
+
+        putCompl :: Text -> Completion -> GuiMonad ()
+        putCompl str cpl = updateGState (gFunCompletion .~
+                                        (Just $ addCharToCompletion str cpl))
 
 -- | Crea un campo de texto con su respectivo scrollWindow.
 createTextEdit :: Maybe String -> GuiMonad ScrolledWindow

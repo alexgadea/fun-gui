@@ -13,7 +13,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.Strict.Either as SEither
 
-import GUI.GState
+import GUI.GState hiding (eval)
 import GUI.Utils
 import GUI.Console
 import GUI.EvalConsole.Parser

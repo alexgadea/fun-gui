@@ -569,8 +569,11 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">•</property>
+                                <property name="primary_icon_stock">gtk-execute</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
+                                <property name="primary_icon_sensitive">False</property>
+                                <property name="primary_icon_tooltip_markup" translatable="yes">Ingrese una expresión &lt;i&gt;expr&lt;/i&gt; para evaluarla o &lt;b&gt;load&lt;/b&gt; &lt;i&gt;expr&lt;/i&gt; para cargar la expresión y luego evaluarla paso a paso con &lt;b&gt;step&lt;/b&gt; (o con &lt;b&gt;steptrace&lt;/b&gt; para más detalle). También puede ver la traza de evaluación con &lt;b&gt;evaltrace&lt;/b&gt; &lt;i&gt;expr&lt;/i&gt;.</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

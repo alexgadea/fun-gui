@@ -46,8 +46,6 @@ configCommandConsole= ask >>= \content ->
                         let buf = content ^. (gFunCommConsole . commTBuffer)
                         let tv = content ^. (gFunCommConsole . commTView)
                         configConsoleTV tv buf
---                         forkIO (processCmd ref evIn evRes)
---                         forkIO (showResultCmd evRes buf tv mvarShow)
                         do _ <- entry `on` entryActivate $ io $
                             do
                                cmdLine <- entryGetText entry
@@ -89,7 +87,7 @@ processCmd s ref = either (return . SEither.Left . ("ERROR: "++) . show)
                  Load e -> newEvalEnv ref >>= \evEnv ->
                            writeRef ref 
                             ((.~) gFunEvalSt (FunEvalState (Just e) evEnv (Just $ Load e)) st) >>
-                           return (SEither.Right $ "Expresión cargada" ++ show e)
+                           return (SEither.Right $ "Expresión cargada " ++ show e)
                  com@(Eval e) -> processEval com e ref st eval PE.prettyShow
                  com@Step -> processStep com eExp eEnv st evalStep 
                                     (showWithNewFuncs fenv) id

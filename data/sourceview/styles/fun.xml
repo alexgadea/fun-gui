@@ -78,15 +78,17 @@
   <style name="def:error"                   line-background="red" bold="true"/>
   <style name="def:note"                    foreground="blue" line-background="yellow" bold="true"/>
   <style name="def:underlined"              italic="true" underline="true"/>
-  <style name="def:declaration"             foreground="purple"/>
-  <style name="def:specblock"               line-background="yellowBack"/>
-  <style name="def:funblock"                line-background="blueBack" />
-  <style name="def:valblock"                line-background="greenBack"/>
-  <style name="def:proofblock"              line-background="pinkBack"/>
-  <style name="def:derivblock"              line-background="purpleBack"/>
-  <style name="def:justificationProof"      foreground="darkgray" italic="true"/>
-  <style name="def:relationProof"           bold="true"/>
-  <style name="def:propblock"               line-background="orange" />
+  <style name="fun:declaration"             foreground="purple"/>
+  <style name="fun:specblock"               line-background="yellowBack"/>
+  <style name="fun:funblock"                line-background="blueBack" />
+  <style name="fun:valblock"                line-background="greenBack"/>
+  <style name="fun:proofblock"              line-background="pinkBack"/>
+  <style name="fun:derivblock"              line-background="purpleBack"/>
+  <style name="fun:justificationProof"      foreground="darkgray" italic="true"/>
+  <style name="fun:proofJustify"            foreground="darkgray" italic="true"/>
+  <style name="fun:proofRelation"           bold="true"/>
+  <style name="fun:propblock"               line-background="orange" />
+  <style name="fun:pragma"                  foreground="violet" bold="true" />
 
   <!-- Language specific styles -->
   <style name="diff:added-line"             foreground="#008B8B"/>

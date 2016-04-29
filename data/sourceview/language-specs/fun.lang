@@ -29,25 +29,24 @@
   </metadata>
   
   <styles>
-    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
-    <style id="type" _name="Data Type" map-to="def:type"/>
-    <style id="underlined" _name="Underlined" map-to="def:underlined"/>
-    <style id="declaration" _name="Declaration Type" map-to="def:declaration"/>
-    <style id="specblock" _name="Specification" map-to="def:specblock"/>
-    <style id="funblock" _name="Function" map-to="def:funblock"/>
-    <style id="valblock" _name="Val" map-to="def:valblock"/>
-    <style id="derivblock" _name="Derivation" map-to="def:derivblock"/>
-    <style id="proofblock" _name="Proof" map-to="def:proofblock"/>
-    <style id="proofJustify" _name="Proof Justify" map-to="def:justificationProof"/>
-    <style id="proofRelation" _name="Proof Relation" map-to="def:relationProof"/>
-    <style id="propblock" _name="Proposition"   map-to="def:propblock"/>
-    <style id="comment" _name="Comment" map-to="def:comment"/>
+    <style id="keyword"       _name="Keyword"          map-to="def:keyword"     />        
+    <style id="type"          _name="Data Type"        map-to="def:type"        />
+    <style id="underlined"    _name="Underlined"       map-to="def:underlined"  />       
+    <style id="declaration"   _name="Declaration Type"  />
+    <style id="specblock"     _name="Specification"     />
+    <style id="funblock"      _name="Function" 	        />
+    <style id="valblock"      _name="Val"      	        />
+    <style id="derivblock"    _name="Derivation"        />
+    <style id="proofblock"    _name="Proof"             />       
+    <style id="proofJustify"  _name="Proof Justify"     />
+    <style id="proofRelation" _name="Proof Relation"    />    
+    <style id="propblock"     _name="Proposition"       />
+    <style id="comment"       _name="Comment"           />
+    <style id="pragma"        _name="Pragma"            />
   </styles>
 
   <definitions>
-    <context id="fun">
-      <include>
-        <context id="keywords" style-ref="keyword">
+        <context id="keywords" style-ref="def:keyword">
           <keyword>where</keyword>
           <keyword>in</keyword>
           <keyword>for</keyword>
@@ -65,39 +64,60 @@
           <keyword>then</keyword>
           <keyword>else</keyword>
           <keyword>verified from</keyword>
-
+          <keyword>begin proof</keyword>
         </context>
 
-        <context id="declarations" style-ref="declaration">
-          <keyword>spec</keyword>
-          <keyword>fun</keyword>
-          <keyword>value</keyword>
-          <keyword>proof</keyword>
-          <keyword>derivation</keyword>
+	<context id="type-or-constructor" style-ref="type">
+	  <match>[0-9]|succ|(\b[A-Z][0-9a-zA-Z._'#]*)</match>
+	</context>
+	
+        <context id="block-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
+            <start>\{-</start>
+            <end>-\}</end>
         </context>
 
-        <context id="types" style-ref="type">
-          <keyword>Nat</keyword>
-          <keyword>List</keyword>
-          <keyword>Bool</keyword>
+	<context id="pragma" style-ref="pragma">
+            <start>\{#</start>
+            <end>#\}</end>
         </context>
 
+	
+        <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+            <start>--</start>
+        </context>
+
+	
+	<context id="case">
+	  <start>(case) .* (of)</start>
+	  <end>end</end>
+	  <include>
+	    <context ref="keywords"/>
+	    <context ref="type-or-constructor"/>
+	    <context sub-pattern="1" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="2" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+	  </include>
+	</context>
+	
         <context id="specblocks" style-ref="specblock">
           <start>let spec</start>
           <end>end</end>
           <include>
-            <context ref="types" />
-            <context ref="declarations" />
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+            <context ref="type-or-constructor" />
             <context ref="keywords" />
           </include>
         </context>
-
+	
         <context id="funblocks" style-ref="funblock">
           <start>let fun</start>
-          <end>end</end>
+	  <end>end</end>
           <include>
-            <context ref="types" />
-            <context ref="declarations" />
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+	    <context ref="case" />
+            <context ref="type-or-constructor" />
             <context ref="keywords" />
           </include>
         </context>
@@ -106,69 +126,74 @@
           <start>let val</start>
           <end>end</end>
           <include>
-            <context ref="types" />
-            <context ref="declarations" />
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+            <context ref="type-or-constructor" />
             <context ref="keywords" />
           </include>
         </context>
 
+            <context id="justification" style-ref="proofJustify">
+              <start>^ +(=|≡) +\{</start>
+              <end>\}$</end>
+              <include>
+		<context sub-pattern="1" where="start" style-ref="proofRelation" class-disabled="operator"/>
+	      </include>
+          </context>
+
+	
         <context id="derivblocks" style-ref="derivblock">
           <start>let derivation</start>
           <end>end</end>
           <include>
-            <context ref="types" />
-            <context ref="declarations" />
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+            <context ref="type-or-constructor" />
             <context ref="keywords" />
-            <context id="justificationDeriv" style-ref="proofJustify">
-              <start>\{</start>
-              <end>\}</end>
-            </context>
+            <context ref="justification" />
           </include>
-        </context>
-        
-        
+        </context>	
+	        
         <context id="proofblocks" style-ref="proofblock">
           <start>let thm</start>
-          <end>end proof</end>
+	  <end>end proof</end>
           <include>
-            <context ref="types" />
-            <context ref="keywords" />            
-            <context id="justification" style-ref="proofJustify">
-              <start>\{</start>
-              <end>\}</end>
-            </context>
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />	 
+            <context ref="type-or-constructor" />
+            <context ref="keywords" />
+	    <context ref="justification" />
             <context id="hypothesis" style-ref="proofJustify">
               <match>\[[^(\])]*:[^(\[)]*\]</match>
-            </context>
-            <context id="relation" style-ref="proofRelation">
-              <match> = | ≡ </match>
             </context>
           </include>
         </context>
         
         <context id="propblocks" style-ref="propblock">
-          <start>let prop</start>
+          <start>let (prop)</start>
           <end>end</end>
           <include>
-            <context ref="types" />
-            <context ref="declarations" />
+	    <context sub-pattern="0" where="start" style-ref="def:keyword" />
+	    <context sub-pattern="0" where="end" style-ref="def:keyword" />
+            <context ref="type-or-constructor" />
             <context ref="keywords" />
           </include>
         </context>
-        
-        
-        <context id="block-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
-            <start>\{-</start>
-            <end>-\}</end>
-        </context>
-    
-        <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
-            <start>--</start>
-        </context>
-        
-
-      </include>
-    </context>
-  </definitions>
+	
+	<context id="fun">
+	  <include>
+	    <context ref="pragma" />
+	    <context ref="funblocks" />
+	    <context ref="valblocks" />
+	    <context ref="derivblocks" />
+	    <context ref="proofblocks" />
+	    <context ref="propblocks" />
+	    <context ref="specblocks" />
+	    <context ref="block-comment" />
+	    <context ref="line-comment" />
+	    <context ref="keywords"/>
+	  </include>
+	</context>
+      </definitions>
 
 </language>
